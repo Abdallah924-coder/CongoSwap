@@ -146,7 +146,23 @@ function authRequired(req, res, next) {
   }
 }
 
-// ─── CRYPTO PRICES ────────────────────────────────────────────
+// ─── TEST EMAIL ───────────────────────────────────────────────
+app.get('/api/test-email', async (req, res) => {
+  if (!process.env.EMAIL_USER) return res.json({ error: 'EMAIL_USER non configure' });
+  try {
+    await transporter.sendMail({
+      from: `"CongoSwap" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER,
+      subject: 'CongoSwap - Test email',
+      html: '<p>Email de test CongoSwap. Si vous recevez ceci, la configuration est correcte.</p>'
+    });
+    res.json({ success: true, message: 'Email envoye a ' + process.env.EMAIL_USER });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
+
 let priceCache = {};
 let lastPriceFetch = 0;
 
@@ -215,36 +231,38 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
       notes: ''
     });
 
-    // Email client
-    const typeLabel = type === 'buy' ? 'Achat' : type === 'sell' ? 'Vente' : 'Échange';
-    await sendEmail(email, `✅ CongoSwap — Commande reçue #${id.slice(0,8)}`, `
+    const typeLabel = type === 'buy' ? 'Achat' : type === 'sell' ? 'Vente' : 'Echange';
+
+    // Email client (non-bloquant)
+    sendEmail(email, `CongoSwap - Commande recue #${id.slice(0,8)}`, `
       <div style="font-family:sans-serif;max-width:500px;margin:auto;background:#0d0d0d;color:#f0ede6;padding:32px;border-radius:8px;">
-        <h2 style="color:#C9A84C;font-size:1.4rem;">CongoSwap 🇨🇬</h2>
+        <h2 style="color:#C9A84C;font-size:1.4rem;">CongoSwap</h2>
         <p>Bonjour,</p>
-        <p>Votre demande de <strong>${typeLabel}</strong> a bien été reçue et est en cours de traitement.</p>
+        <p>Votre demande de <strong>${typeLabel}</strong> a bien ete recue et est en cours de traitement.</p>
         <div style="background:#1c1c1c;padding:16px;border-radius:6px;margin:16px 0;">
-          <p style="margin:4px 0;"><strong>Référence :</strong> #${id.slice(0,8).toUpperCase()}</p>
+          <p style="margin:4px 0;"><strong>Reference :</strong> #${id.slice(0,8).toUpperCase()}</p>
           <p style="margin:4px 0;"><strong>Type :</strong> ${typeLabel}</p>
           ${crypto ? `<p style="margin:4px 0;"><strong>Crypto :</strong> ${crypto}</p>` : ''}
-          ${amount_usd ? `<p style="margin:4px 0;"><strong>Montant :</strong> $${amount_usd} ≈ ${amount_cfa} FCFA</p>` : ''}
+          ${amount_usd ? `<p style="margin:4px 0;"><strong>Montant :</strong> $${amount_usd} soit ${amount_cfa} FCFA</p>` : ''}
         </div>
-        <p>Vous serez notifié par email dès que votre transaction sera traitée.</p>
-        <p style="color:#8a8578;font-size:0.85rem;">Merci de faire confiance à CongoSwap.</p>
+        <p>Vous serez notifie par email des que votre transaction sera traitee.</p>
+        <p style="color:#8a8578;font-size:0.85rem;">Merci de faire confiance a CongoSwap.</p>
       </div>
-    `);
+    `).catch(e => console.error('Email erreur:', e.message));
 
-    // Telegram
-    await sendTelegram(`
+    // Telegram (non-bloquant)
+    sendTelegram(`
 🔔 <b>Nouvelle commande CongoSwap</b>
 
 🆔 <b>Ref:</b> #${id.slice(0,8).toUpperCase()}
 📌 <b>Type:</b> ${typeLabel}
 📧 <b>Email:</b> ${email}
-💰 <b>Crypto:</b> ${crypto || exchange_from + '→' + exchange_to}
-💵 <b>Montant:</b> ${amount_usd ? `$${amount_usd} ≈ ${amount_cfa} FCFA` : 'Échange'}
+💰 <b>Crypto:</b> ${crypto || exchange_from + '->' + exchange_to}
+💵 <b>Montant:</b> ${amount_usd ? '$' + amount_usd + ' soit ' + amount_cfa + ' FCFA' : 'Echange'}
 🔗 <b>Wallet:</b> ${wallet_address || 'N/A'}
-    `.trim());
+    `.trim()).catch(e => console.error('Telegram erreur:', e.message));
 
+    // Répondre immédiatement sans attendre email/telegram
     res.json({ success: true, order_id: id });
   } catch (e) {
     console.error(e);

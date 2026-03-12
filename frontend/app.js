@@ -159,6 +159,11 @@ function goToWaiting(orderId) {
   window.location.href = '/waiting.html?id=' + orderId;
 }
 
+// ─── KEEP-ALIVE (evite le cold start Render) ──────────────────
+setInterval(function() {
+  fetch('/api/prices').catch(function(){});
+}, 10 * 60 * 1000);
+
 // ─── GOOGLE ANALYTICS ─────────────────────────────────────────
 (function() {
   var s = document.createElement('script');
