@@ -114,7 +114,7 @@ async function sendEmail(to, subject, html) {
       from: `"CongoSwap 🇨🇬" <${process.env.EMAIL_USER}>`,
       to, subject, html
     });
-    console.log(`📧 Email envoyé à ${to}`);
+    console.log('Email envoye a ' + to);
   } catch (e) {
     console.error('Erreur email:', e.message);
   }
@@ -182,6 +182,8 @@ app.get('/api/prices', async (req, res) => {
     return res.json(Object.keys(priceCache).length ? priceCache : FALLBACK_PRICES);
   } catch (e) {
     return res.json(Object.keys(priceCache).length ? priceCache : FALLBACK_PRICES);
+  }
+});
 
 // ─── ORDERS ───────────────────────────────────────────────────
 
@@ -319,5 +321,5 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-app.listen(PORT, () => console.log(`🚀 CongoSwap backend on port ${PORT}`));
+app.listen(PORT, () => console.log('CongoSwap backend running on port ' + PORT));
 
