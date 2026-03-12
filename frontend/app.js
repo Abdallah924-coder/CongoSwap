@@ -29,12 +29,12 @@ const NETWORKS = {
 // Adresses de réception pour les ventes (client envoie ici)
 // ⚠️ À REMPLIR avec vos vraies adresses
 const WALLET_ADDRESSES = {
-  BTC:  { address: '1F7nZDdEw6AcEWRWG18LLDCiHggh3vYFoW',  network: 'Bitcoin (BTC)' },
-  ETH:  { address: '0x90439961b090f8b51c28023e30213e318db227f3',  network: 'Ethereum (ERC-20)' },
-  USDT: { address: 'TATtuLm5JBWHZvtACk2AJ2iqPGJRpnZ5Rt', network: 'Tron (TRC-20)' },
-  BNB:  { address: '0x90439961b090f8b51c28023e30213e318db227f3',  network: 'BNB Smart Chain (BEP-20)' },
-  SOL:  { address: '4rFEr619w8g96qFBd9DcrUjTDSFXbtCC3iDfANVEYPz5',  network: 'Solana' },
-  XRP:  { address: 'rJxyARi428MZncrKuWP13gmm4XnjoV9Yxk',  network: 'Ripple (XRP)' },
+  BTC:  { address: 'À_REMPLIR_BTC',  network: 'Bitcoin (BTC)' },
+  ETH:  { address: 'À_REMPLIR_ETH',  network: 'Ethereum (ERC-20)' },
+  USDT: { address: 'À_REMPLIR_USDT', network: 'Tron (TRC-20)' },
+  BNB:  { address: 'À_REMPLIR_BNB',  network: 'BNB Smart Chain (BEP-20)' },
+  SOL:  { address: 'À_REMPLIR_SOL',  network: 'Solana' },
+  XRP:  { address: 'À_REMPLIR_XRP',  network: 'Ripple (XRP)' },
 };
 
 // ─── PRICE CACHE ──────────────────────────────────────────────
@@ -73,26 +73,26 @@ function formatUSD(n) {
 function buildNavHTML(activePage) {
   return `
   <nav>
-    <a class="logo" href="index.html">Congo<span>Swap</span></a>
+    <a class="logo" href="/">Congo<span>Swap</span></a>
     <ul>
-      <li><a href="index.html" class="${activePage==='home'?'active':''}">Accueil</a></li>
-      <li><a href="buy.html" class="${activePage==='buy'?'active':''}">Acheter</a></li>
-      <li><a href="sell.html" class="${activePage==='sell'?'active':''}">Vendre</a></li>
-      <li><a href="exchange.html" class="${activePage==='exchange'?'active':''}">Échanger</a></li>
-      <li><a href="contact.html" class="${activePage==='contact'?'active':''}">Contact & FAQ</a></li>
-      <li><a href="buy.html" class="nav-cta btn">Commencer</a></li>
+      <li><a href="/" class="${activePage==='home'?'active':''}">Accueil</a></li>
+      <li><a href="/buy.html" class="${activePage==='buy'?'active':''}">Acheter</a></li>
+      <li><a href="/sell.html" class="${activePage==='sell'?'active':''}">Vendre</a></li>
+      <li><a href="/exchange.html" class="${activePage==='exchange'?'active':''}">Échanger</a></li>
+      <li><a href="/contact.html" class="${activePage==='contact'?'active':''}">Contact & FAQ</a></li>
+      <li><a href="/buy.html" class="nav-cta btn">Commencer</a></li>
     </ul>
     <button class="hamburger" id="hamburger" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
   </nav>
   <div class="nav-drawer" id="nav-drawer">
-    <a href="index.html" class="${activePage==='home'?'active':''}">Accueil</a>
-    <a href="buy.html" class="${activePage==='buy'?'active':''}">💸 Acheter des cryptos</a>
-    <a href="sell.html" class="${activePage==='sell'?'active':''}">💰 Vendre mes cryptos</a>
-    <a href="exchange.html" class="${activePage==='exchange'?'active':''}">🔄 Échanger</a>
-    <a href="contact.html" class="${activePage==='contact'?'active':''}">💬 Contact & FAQ</a>
-    <a href="buy.html" class="nav-drawer-cta">Commencer maintenant</a>
+    <a href="/" class="${activePage==='home'?'active':''}">Accueil</a>
+    <a href="/buy.html" class="${activePage==='buy'?'active':''}">💸 Acheter des cryptos</a>
+    <a href="/sell.html" class="${activePage==='sell'?'active':''}">💰 Vendre mes cryptos</a>
+    <a href="/exchange.html" class="${activePage==='exchange'?'active':''}">🔄 Échanger</a>
+    <a href="/contact.html" class="${activePage==='contact'?'active':''}">💬 Contact & FAQ</a>
+    <a href="/buy.html" class="nav-drawer-cta">Commencer maintenant</a>
   </div>`;
 }
 

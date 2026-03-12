@@ -150,23 +150,38 @@ function authRequired(req, res, next) {
 let priceCache = {};
 let lastPriceFetch = 0;
 
+// Prix de secours si CoinGecko est indisponible
+const FALLBACK_PRICES = {
+  bitcoin:     { usd: 97000 },
+  ethereum:    { usd: 3200  },
+  tether:      { usd: 1     },
+  binancecoin: { usd: 610   },
+  solana:      { usd: 185   },
+  ripple:      { usd: 2.1   },
+};
+
 app.get('/api/prices', async (req, res) => {
   const now = Date.now();
-  if (now - lastPriceFetch < 60000 && Object.keys(priceCache).length) {
+  // Cache 5 minutes
+  if (now - lastPriceFetch < 300000 && Object.keys(priceCache).length) {
     return res.json(priceCache);
   }
   try {
     const r = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,binancecoin,solana,ripple&vs_currencies=usd,xof'
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,binancecoin,solana,ripple&vs_currencies=usd',
+      { headers: { 'User-Agent': 'CongoSwap/1.0', 'Accept': 'application/json' } }
     );
     const data = await r.json();
-    priceCache = data;
-    lastPriceFetch = now;
-    res.json(data);
+    // Vérifie que la réponse contient bien des prix (pas une erreur 429)
+    if (data.bitcoin?.usd) {
+      priceCache = data;
+      lastPriceFetch = now;
+      return res.json(priceCache);
+    }
+    // CoinGecko a retourné une erreur — utiliser le cache ou les prix de secours
+    return res.json(Object.keys(priceCache).length ? priceCache : FALLBACK_PRICES);
   } catch (e) {
-    res.json(priceCache);
-  }
-});
+    return res.json(Object.keys(priceCache).length ? priceCache : FALLBACK_PRICES);
 
 // ─── ORDERS ───────────────────────────────────────────────────
 
