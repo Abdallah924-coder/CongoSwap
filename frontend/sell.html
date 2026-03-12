@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CongoSwap — Vendre des cryptomonnaies</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .sell-layout { display:grid; grid-template-columns:1fr 1fr; gap:2px; min-height:calc(100vh - 72px); }
+    .sell-left { background:var(--dark2); padding:60px 48px; border-right:1px solid var(--border); }
+    .sell-right { padding:60px 48px; }
+    .receive-box { background:var(--dark3); border:1px solid rgba(46,204,113,.2); padding:28px; margin:24px 0; display:none; }
+    .receive-box.visible { display:block; }
+    .receive-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
+    .receive-row:last-child { border-bottom:none; }
+    .receive-label { color:var(--text-dim); font-size:.85rem; }
+    .receive-val { font-family:'Syne',sans-serif; font-weight:700; }
+    .wallet-dest { background:var(--dark4); border:1px solid var(--border); padding:20px; margin:20px 0; display:none; }
+    .wallet-dest.visible { display:block; }
+    .wallet-addr { font-family:monospace; font-size:.85rem; color:var(--gold); word-break:break-all; margin:8px 0; }
+    .copy-btn { background:var(--gold-dim); border:none; color:var(--gold); padding:5px 12px; font-size:.75rem; cursor:pointer; font-family:'Syne',sans-serif; letter-spacing:.05em; }
+    .copy-btn:hover { background:var(--gold); color:var(--dark); }
+    .cfa-receive { background:linear-gradient(135deg,rgba(46,204,113,.08),rgba(46,204,113,.02)); border:1px solid rgba(46,204,113,.2); padding:20px 24px; margin:16px 0; display:none; }
+    .cfa-receive.visible { display:block; }
+    .cfa-receive-amount { font-family:'Syne',sans-serif; font-weight:800; font-size:1.8rem; color:var(--green); }
+    @media(max-width:900px) {
+      .sell-layout { grid-template-columns:1fr; }
+      .sell-left { border-right:none; border-bottom:1px solid var(--border); padding:40px 20px; }
+      .sell-right { padding:32px 20px; }
+    }
+    @media(max-width:480px) {
+      .cfa-receive-amount { font-size:1.4rem; }
+      .wallet-addr { font-size:.78rem; }
+    }
+  </style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page">
+  <div class="sell-layout">
+
+    <!-- LEFT: Info -->
+    <div class="sell-left">
+      <span class="section-tag">Vendre</span>
+      <h1 class="section-title">Vendez vos<br>cryptomonnaies</h1>
+      <p style="color:var(--text-dim);margin-bottom:32px;">Envoyez vos cryptos à notre adresse, joignez la capture d'écran et recevez vos FCFA en Mobile Money.</p>
+
+      <div style="background:var(--dark3);border:1px solid var(--border);padding:20px;margin-bottom:28px;">
+        <div style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;">Taux de vente actuel</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--green)">575 <span style="font-size:1rem;font-weight:400">FCFA / $</span></div>
+        <div style="font-size:.8rem;color:var(--text-dim);margin-top:4px;">Vous envoyez la crypto, nous vous versons les FCFA</div>
+      </div>
+
+      <!-- Wallet destination -->
+      <div class="wallet-dest" id="wallet-dest">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px;color:var(--green)">📬 Envoyez votre crypto ici</div>
+        <div style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;">Réseau</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:600;margin:4px 0 12px;" id="dest-network">--</div>
+        <div style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;">Adresse de réception CongoSwap</div>
+        <div class="wallet-addr" id="dest-address">Sélectionnez une crypto pour voir l'adresse</div>
+        <button class="copy-btn" id="copy-addr-btn">📋 Copier l'adresse</button>
+        <div style="margin-top:14px;background:rgba(46,204,113,.06);padding:12px;font-size:.82rem;color:var(--text-dim);">
+          ⚠️ Envoyez uniquement <strong id="dest-crypto-warn">cette crypto</strong> sur ce réseau. Tout envoi incorrect sera perdu.
+        </div>
+      </div>
+
+      <!-- CFA to receive -->
+      <div class="cfa-receive" id="cfa-receive">
+        <div style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Vous recevrez en FCFA</div>
+        <div class="cfa-receive-amount" id="cfa-receive-amount">--</div>
+        <div style="font-size:.8rem;color:var(--text-dim);margin-top:4px;" id="cfa-receive-note">--</div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px;">Comment ça marche</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;">
+          <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--green);flex-shrink:0">1.</span>Choisissez la crypto à vendre et entrez le montant</li>
+          <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--green);flex-shrink:0">2.</span>L'adresse de réception CongoSwap s'affiche</li>
+          <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--green);flex-shrink:0">3.</span>Envoyez la crypto à cette adresse</li>
+          <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--green);flex-shrink:0">4.</span>Prenez une capture de la transaction et soumettez</li>
+          <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--green);flex-shrink:0">5.</span>Recevez vos FCFA en Mobile Money sous 2h</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- RIGHT: Form -->
+    <div class="sell-right">
+      <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.4rem;margin-bottom:28px;">Formulaire de vente</h2>
+      <form id="sellForm">
+        <div class="form-group">
+          <label for="email">Votre adresse email *</label>
+          <input type="email" id="email" placeholder="vous@exemple.com" required/>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="crypto">Crypto à vendre *</label>
+            <select id="crypto" required></select>
+          </div>
+          <div class="form-group">
+            <label for="network">Réseau *</label>
+            <select id="network" required></select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="amount_usd">Montant à vendre en USD ($) *</label>
+          <input type="number" id="amount_usd" placeholder="Ex: 30" min="1" step="0.01" required/>
+        </div>
+
+        <div class="form-group">
+          <label for="mobile_number">Votre numéro Mobile Money (pour recevoir les FCFA) *</label>
+          <input type="tel" id="mobile_number" placeholder="+242 06 XXX XX XX" required/>
+        </div>
+
+        <div class="form-group">
+          <label for="wallet_address">Votre adresse wallet (depuis laquelle vous envoyez) *</label>
+          <input type="text" id="wallet_address" placeholder="Ex: TXy1234..." required/>
+        </div>
+
+        <div class="form-group">
+          <label>Capture d'écran de la transaction *</label>
+          <div style="border:2px dashed var(--border);padding:28px;text-align:center;cursor:pointer;" onclick="document.getElementById('screenshot').click()">
+            <div>📸 Cliquez pour uploader la capture d'écran</div>
+            <div style="font-size:.8rem;color:var(--text-dim);margin-top:6px">JPG, PNG · Max 5MB</div>
+            <input type="file" id="screenshot" accept="image/*" style="display:none"/>
+            <img id="upload-preview" style="max-width:100%;max-height:180px;margin-top:12px;display:none"/>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-full" style="background:var(--green);color:var(--dark);font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;letter-spacing:.06em;text-transform:uppercase;padding:14px;border:none;cursor:pointer;" id="submitBtn">
+          Envoyer ma demande de vente
+        </button>
+        <div id="formAlert" class="alert"></div>
+      </form>
+    </div>
+  </div>
+</div>
+<div id="footer-placeholder"></div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('nav-placeholder').innerHTML = buildNavHTML('sell');
+document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+
+const cryptoSel = document.getElementById('crypto');
+const networkSel = document.getElementById('network');
+const amountUsdEl = document.getElementById('amount_usd');
+
+populateCryptoSelect(cryptoSel);
+
+cryptoSel.addEventListener('change', () => {
+  populateNetworkSelect(networkSel, cryptoSel.value);
+  updateWalletDest();
+  updateCFAReceive();
+});
+networkSel.addEventListener('change', () => {
+  // Mettre à jour le réseau affiché dans le bloc wallet
+  if (networkSel.value) {
+    document.getElementById('dest-network').textContent = networkSel.value;
+  }
+  updateWalletDest();
+});
+amountUsdEl.addEventListener('input', updateCFAReceive);
+
+function updateWalletDest() {
+  const sym = cryptoSel.value;
+  if (!sym) return;
+  const wallet = WALLET_ADDRESSES[sym];
+  // Réseau : si l'utilisateur a déjà choisi un réseau, on l'affiche, sinon le réseau par défaut de la crypto
+  const selectedNetwork = networkSel.value || wallet?.network || '--';
+  document.getElementById('dest-address').textContent = wallet?.address || 'Adresse à configurer dans app.js';
+  document.getElementById('dest-network').textContent = selectedNetwork;
+  document.getElementById('dest-crypto-warn').textContent = sym;
+  document.getElementById('wallet-dest').style.display = 'block';
+  document.getElementById('copy-addr-btn').onclick = () => {
+    navigator.clipboard.writeText(wallet?.address || '').then(() => alert('Adresse copiée !')).catch(() => {
+      prompt('Copiez cette adresse :', wallet?.address || '');
+    });
+  };
+}
+
+function updateCFAReceive() {
+  const usd = parseFloat(amountUsdEl.value) || 0;
+  const cfa = usd * RATES.sell;
+  if (usd > 0) {
+    document.getElementById('cfa-receive-amount').textContent = formatCFA(cfa);
+    const cryptoUsd = getUsdPrice(cryptoSel.value);
+    const cryptoAmt = cryptoUsd ? (usd / cryptoUsd).toFixed(6) : '--';
+    document.getElementById('cfa-receive-note').textContent = `≈ ${cryptoAmt} ${cryptoSel.value || ''}  ·  Taux: ${RATES.sell} FCFA/$`;
+    document.getElementById('cfa-receive').classList.add('visible');
+  } else {
+    document.getElementById('cfa-receive').classList.remove('visible');
+  }
+}
+
+document.getElementById('screenshot').addEventListener('change', function() {
+  if (this.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('upload-preview');
+      img.src = e.target.result; img.style.display = 'block';
+    };
+    reader.readAsDataURL(this.files[0]);
+  }
+});
+
+loadPrices().then(() => { updateCFAReceive(); });
+
+document.getElementById('sellForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const alertEl = document.getElementById('formAlert');
+  alertEl.className = 'alert';
+  const usd = parseFloat(amountUsdEl.value);
+  const cfa = usd * RATES.sell;
+  const formData = new FormData();
+  formData.append('type', 'sell');
+  formData.append('email', document.getElementById('email').value);
+  formData.append('crypto', cryptoSel.value);
+  formData.append('network', networkSel.value);
+  formData.append('amount_usd', usd);
+  formData.append('amount_cfa', cfa);
+  formData.append('wallet_address', document.getElementById('wallet_address').value);
+  const sc = document.getElementById('screenshot').files[0];
+  if (sc) formData.append('screenshot', sc);
+
+  setLoading(btn, true);
+  try {
+    const r = await fetch(`${API}/api/orders`, { method:'POST', body:formData });
+    const data = await r.json();
+    if (data.success) goToWaiting(data.order_id);
+    else throw new Error(data.error);
+  } catch {
+    alertEl.className = 'alert error';
+    alertEl.textContent = 'Erreur lors de l\'envoi. Contactez-nous sur Telegram.';
+  }
+  setLoading(btn, false);
+});
+</script>
+</body>
+</html>

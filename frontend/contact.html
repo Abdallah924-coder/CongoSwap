@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CongoSwap — Contact & FAQ</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .contact-hero { padding:100px 48px 60px; background:var(--dark2); border-bottom:1px solid var(--border); }
+    .contact-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:2px; margin-top:48px; }
+    .contact-card { background:var(--dark3); padding:32px 28px; text-decoration:none; color:var(--text); display:block; border:1px solid transparent; transition:border-color .2s,transform .2s; }
+    .contact-card:hover { border-color:var(--border); transform:translateY(-3px); }
+    .contact-icon { font-size:2.2rem; margin-bottom:16px; }
+    .contact-card h4 { font-family:'Syne',sans-serif; font-weight:700; font-size:1.05rem; margin-bottom:6px; color:var(--gold); }
+    .contact-card p { color:var(--text-dim); font-size:.85rem; line-height:1.6; }
+    .contact-card .contact-val { font-family:'Syne',sans-serif; font-weight:600; color:var(--text); margin-top:8px; font-size:.9rem; }
+
+    /* FAQ */
+    .faq-section { padding:80px 48px; }
+    .faq-cats { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:36px; }
+    .faq-cat { background:var(--dark3); border:1px solid var(--border); color:var(--text-dim); padding:6px 18px; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; font-family:'Syne',sans-serif; font-weight:600; transition:all .2s; }
+    .faq-cat.active,.faq-cat:hover { background:var(--gold); color:var(--dark); border-color:var(--gold); }
+    .faq-list { max-width:800px; }
+    .faq-item { border-bottom:1px solid var(--border); }
+    .faq-q { width:100%; background:none; border:none; color:var(--text); text-align:left; padding:22px 0; font-family:'Syne',sans-serif; font-weight:600; font-size:1rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:20px; }
+    .faq-q span { color:var(--gold); font-size:1.3rem; transition:transform .3s; flex-shrink:0; }
+    .faq-item.open .faq-q span { transform:rotate(45deg); }
+    .faq-a { color:var(--text-dim); font-size:.9rem; line-height:1.85; max-height:0; overflow:hidden; transition:max-height .4s ease, padding .3s; }
+    .faq-item.open .faq-a { max-height:400px; padding-bottom:22px; }
+    .faq-item[data-cat] { display:block; }
+    .faq-item[data-cat].hidden { display:none; }
+
+    @media(max-width:768px) {
+      .contact-hero { padding:80px 20px 40px; }
+      .faq-section { padding:52px 20px; }
+      .contact-grid { grid-template-columns:1fr 1fr; }
+      .faq-q { font-size:.92rem; padding:18px 0; }
+      .faq-cats { gap:8px; }
+      .faq-cat { padding:5px 12px; font-size:.72rem; }
+    }
+    @media(max-width:480px) {
+      .contact-grid { grid-template-columns:1fr; }
+      .contact-card { padding:24px 20px; }
+    }
+  </style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page">
+
+  <!-- CONTACT HERO -->
+  <section class="contact-hero">
+    <span class="section-tag">Contact</span>
+    <h1 class="section-title">Contactez<br>notre équipe</h1>
+    <p class="section-sub">Disponibles tous les jours de 8h à 20h (heure de Brazzaville). Réponse garantie sous 30 minutes sur Telegram.</p>
+    <div class="contact-grid">
+      <a href="https://t.me/CongoSwap" target="_blank" class="contact-card">
+        <div class="contact-icon">✈️</div>
+        <h4>Telegram</h4>
+        <p>Canal principal de communication. Réponse la plus rapide.</p>
+        <div class="contact-val">@CongoSwapOfficial</div>
+      </a>
+      <a href="mailto:magellandevoue3@gmail.com" class="contact-card">
+        <div class="contact-icon">✉️</div>
+        <h4>Email</h4>
+        <p>Pour les demandes formelles, réclamations ou documents officiels.</p>
+        <div class="contact-val"><span class="__cf_email__" data-cfemail="84e7ebeaf0e5e7f0c4e7ebeae3ebf7f3e5f4aae7ebe9">Administrateur</span></div>
+      </a>
+      <a href="https://wa.me/242061149792" target="_blank" class="contact-card">
+        <div class="contact-icon">📱</div>
+        <h4>WhatsApp</h4>
+        <p>Disponible également sur WhatsApp pour les clients préférant ce canal.</p>
+        <div class="contact-val">+242 06 114 97 92</div>
+      </a>
+      <div class="contact-card" style="cursor:default;">
+        <div class="contact-icon">🕐</div>
+        <h4>Horaires</h4>
+        <p>Lundi au Dimanche</p>
+        <div class="contact-val">08h00 — 20h00</div>
+        <p style="margin-top:8px">Heure de Brazzaville (WAT)</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <span class="section-tag">FAQ</span>
+    <h2 class="section-title">Questions fréquentes</h2>
+    <p class="section-sub">Trouvez rapidement une réponse à votre question.</p>
+
+    <div class="faq-cats">
+      <button class="faq-cat active" data-filter="all">Toutes</button>
+      <button class="faq-cat" data-filter="general">Général</button>
+      <button class="faq-cat" data-filter="achat">Achat</button>
+      <button class="faq-cat" data-filter="vente">Vente</button>
+      <button class="faq-cat" data-filter="securite">Sécurité</button>
+      <button class="faq-cat" data-filter="paiement">Paiement</button>
+    </div>
+
+    <div class="faq-list" id="faq-list">
+
+      <!-- GENERAL -->
+      <div class="faq-item" data-cat="general">
+        <button class="faq-q">Qu'est-ce que CongoSwap ? <span>+</span></button>
+        <div class="faq-a">CongoSwap est une plateforme d'échange de cryptomonnaies locale, fondée et gérée par des Congolais à Brazzaville. Notre mission est de permettre aux Congolais d'acheter, vendre et échanger des cryptomonnaies en toute sécurité, sans risque d'arnaque de la part d'étrangers inconnus sur internet.</div>
+      </div>
+      <div class="faq-item" data-cat="general">
+        <button class="faq-q">Comment êtes-vous différents des arnaques ? <span>+</span></button>
+        <div class="faq-a">Contrairement aux arnaqueurs étrangers anonymes, CongoSwap est une entité locale identifiable. Notre numéro Mobile Money (+242 06 932 59 37) est public et vérifiable. Nous ne demandons jamais de paiement avant de vous avoir confirmé les détails. Toutes nos transactions sont traçables par email avec des références uniques.</div>
+      </div>
+      <div class="faq-item" data-cat="general">
+        <button class="faq-q">Quelles cryptomonnaies sont disponibles ? <span>+</span></button>
+        <div class="faq-a">Nous proposons actuellement Bitcoin (BTC), Ethereum (ETH), Tether USDT, Binance Coin (BNB), Solana (SOL) et Ripple (XRP). Nous prévoyons d'ajouter d'autres cryptomonnaies selon la demande de nos clients.</div>
+      </div>
+      <div class="faq-item" data-cat="general">
+        <button class="faq-q">Est-ce légal d'utiliser des cryptomonnaies en République du Congo ? <span>+</span></button>
+        <div class="faq-a">L'utilisation personnelle des cryptomonnaies n'est pas explicitement interdite en République du Congo. CongoSwap opère dans le cadre légal en vigueur. Nous vous conseillons de vous renseigner sur vos obligations fiscales personnelles. En cas de doute, consultez un conseiller fiscal.</div>
+      </div>
+      <div class="faq-item" data-cat="general">
+        <button class="faq-q">Dois-je créer un compte pour utiliser CongoSwap ? <span>+</span></button>
+        <div class="faq-a">Non ! CongoSwap ne nécessite pas de création de compte. Il suffit de votre adresse email pour suivre vos transactions. Nous avons voulu rendre le service aussi simple et accessible que possible.</div>
+      </div>
+
+      <!-- ACHAT -->
+      <div class="faq-item" data-cat="achat">
+        <button class="faq-q">Comment acheter des cryptos sur CongoSwap ? <span>+</span></button>
+        <div class="faq-a">Rendez-vous sur la page "Acheter", choisissez la crypto souhaitée, entrez le montant en dollars. Le montant FCFA s'affiche automatiquement. Envoyez ce montant au +242 06 932 59 37 (Michy Magellan DEVOUE LI-MBOUITY) via Mobile Money, prenez une capture d'écran, remplissez le formulaire avec votre adresse wallet et l'image de paiement.</div>
+      </div>
+      <div class="faq-item" data-cat="achat">
+        <button class="faq-q">Quel est le taux d'achat ? <span>+</span></button>
+        <div class="faq-a">Le taux d'achat est de 630 FCFA par dollar américain. Par exemple, pour acheter 50 $ de Bitcoin, vous payez 31 500 FCFA en Mobile Money. Ce taux est fixe et transparent — pas de frais cachés.</div>
+      </div>
+      <div class="faq-item" data-cat="achat">
+        <button class="faq-q">Quel est le montant minimum d'achat ? <span>+</span></button>
+        <div class="faq-a">Il n'y a pas de montant minimum strict, mais nous recommandons un minimum de 5 $ (soit environ 3 150 FCFA) pour que la transaction reste économiquement viable compte tenu des frais de réseau blockchain.</div>
+      </div>
+      <div class="faq-item" data-cat="achat">
+        <button class="faq-q">Combien de temps pour recevoir ma crypto ? <span>+</span></button>
+        <div class="faq-a">Une fois votre paiement Mobile Money vérifié, nous envoyons la crypto dans les 30 minutes à 2 heures. Vous recevrez un email de confirmation dès que la transaction est envoyée. Pour les gros montants (plus de 500 $), le délai peut être légèrement plus long.</div>
+      </div>
+
+      <!-- VENTE -->
+      <div class="faq-item" data-cat="vente">
+        <button class="faq-q">Comment vendre mes cryptos ? <span>+</span></button>
+        <div class="faq-a">Sur la page "Vendre", choisissez la crypto à vendre, entrez le montant, et l'adresse de réception CongoSwap s'affiche. Envoyez la crypto à cette adresse, prenez une capture d'écran de la transaction, et remplissez le formulaire avec votre numéro Mobile Money pour recevoir les FCFA.</div>
+      </div>
+      <div class="faq-item" data-cat="vente">
+        <button class="faq-q">Quel est le taux de vente ? <span>+</span></button>
+        <div class="faq-a">Lorsque vous vendez, vous recevez 575 FCFA par dollar américain. Par exemple, pour 50 $ de Bitcoin vendu, vous recevez 28 750 FCFA sur votre Mobile Money. Ce taux est clairement affiché avant toute transaction.</div>
+      </div>
+      <div class="faq-item" data-cat="vente">
+        <button class="faq-q">Dans quel délai recevrai-je mes FCFA ? <span>+</span></button>
+        <div class="faq-a">Après confirmation de la réception de votre crypto sur notre portefeuille, nous effectuons le virement Mobile Money dans les 30 à 120 minutes. Vous recevrez un email de confirmation du virement.</div>
+      </div>
+
+      <!-- SECURITE -->
+      <div class="faq-item" data-cat="securite">
+        <button class="faq-q">Comment savoir que mon argent est en sécurité ? <span>+</span></button>
+        <div class="faq-a">Chaque transaction reçoit un numéro de référence unique. Vous recevez des emails à chaque étape. Pour les achats, vous payez un numéro Mobile Money public et vérifiable. Notre identité (Michy Magellan DEVOUE LI-MBOUITY) est publiquement associée au service. En cas de doute, contactez-nous sur Telegram avant tout envoi.</div>
+      </div>
+      <div class="faq-item" data-cat="securite">
+        <button class="faq-q">CongoSwap demande-t-il mes clés privées ? <span>+</span></button>
+        <div class="faq-a">Jamais. CongoSwap ne vous demandera JAMAIS vos clés privées, votre phrase secrète de récupération (seed phrase) ou votre mot de passe wallet. Si quelqu'un prétendant être CongoSwap vous demande ces informations, c'est une arnaque — contactez-nous immédiatement.</div>
+      </div>
+      <div class="faq-item" data-cat="securite">
+        <button class="faq-q">Que faire si je me suis trompé d'adresse ? <span>+</span></button>
+        <div class="faq-a">Contactez-nous immédiatement sur Telegram (+242 06 932 59 37) avec votre numéro de référence. Si l'envoi n'est pas encore confirmé sur la blockchain, il peut être possible d'agir. Malheureusement, les transactions blockchain confirmées sont irréversibles — d'où l'importance de toujours vérifier l'adresse avant d'envoyer.</div>
+      </div>
+
+      <!-- PAIEMENT -->
+      <div class="faq-item" data-cat="paiement">
+        <button class="faq-q">Quels modes de paiement acceptez-vous ? <span>+</span></button>
+        <div class="faq-a">Pour les achats de crypto, nous acceptons les paiements Mobile Money MTN Congo et Airtel Money au numéro +242 06 932 59 37. Pour les virements de FCFA lors des ventes, nous utilisons également ces deux réseaux Mobile Money.</div>
+      </div>
+      <div class="faq-item" data-cat="paiement">
+        <button class="faq-q">Y a-t-il des frais supplémentaires ? <span>+</span></button>
+        <div class="faq-a">Pour les achats et ventes, notre rémunération est incluse dans le taux de change (630 à l'achat, 575 à la vente). Il n'y a pas de frais cachés supplémentaires. Pour les échanges crypto-to-crypto, des frais fixes de 2% sont appliqués sur le montant échangé, clairement affichés avant confirmation.</div>
+      </div>
+      <div class="faq-item" data-cat="paiement">
+        <button class="faq-q">Ma transaction a été validée mais je n'ai pas reçu ma crypto ? <span>+</span></button>
+        <div class="faq-a">Vérifiez d'abord votre email de confirmation qui contient le hash de la transaction blockchain. Ensuite, vérifiez votre adresse wallet sur un explorateur blockchain (blockchain.com pour BTC, etherscan.io pour ETH). Si le problème persiste, contactez-nous sur Telegram avec votre référence de commande.</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+<div id="footer-placeholder"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="app.js"></script>
+<script>
+document.getElementById('nav-placeholder').innerHTML = buildNavHTML('contact');
+document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+
+// FAQ accordion
+document.querySelectorAll('.faq-q').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const item = btn.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  });
+});
+
+// Category filter
+document.querySelectorAll('.faq-cat').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.faq-cat').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('.faq-item[data-cat]').forEach(item => {
+      if (filter === 'all' || item.dataset.cat === filter) {
+        item.classList.remove('hidden');
+      } else {
+        item.classList.add('hidden');
+        item.classList.remove('open');
+      }
+    });
+  });
+});

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CongoSwap — Échange Crypto & CFA en République du Congo</title>
+  <meta name="description" content="Achetez, vendez et échangez vos cryptomonnaies contre des FCFA en toute sécurité en République du Congo. Service local de confiance."/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* HERO */
+    .hero { min-height:100vh; display:flex; align-items:center; padding:120px 48px 80px; position:relative; overflow:hidden; }
+    .hero-bg { position:absolute; inset:0; background: radial-gradient(ellipse 65% 55% at 72% 50%, rgba(201,168,76,.08) 0%, transparent 65%), radial-gradient(ellipse 40% 50% at 10% 80%, rgba(201,168,76,.04) 0%, transparent 60%); }
+    .hero-content { position:relative; max-width:680px; }
+    .hero-tag { display:inline-flex; align-items:center; gap:8px; font-size:.73rem; letter-spacing:.15em; text-transform:uppercase; color:var(--gold); border:1px solid var(--border); padding:6px 14px; margin-bottom:28px; }
+    .hero h1 { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(2.6rem,5vw,4.2rem); line-height:1.05; letter-spacing:-.03em; margin-bottom:22px; }
+    .hero h1 em { font-style:normal; color:var(--gold); }
+    .hero-lead { font-size:1.05rem; color:var(--text-dim); max-width:500px; margin-bottom:36px; }
+    .hero-cta { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:48px; }
+    .hero-stats { display:flex; gap:32px; flex-wrap:wrap; }
+    .stat { border-left:2px solid var(--border); padding-left:16px; }
+    .stat-num { font-family:'Syne',sans-serif; font-weight:700; font-size:1.5rem; color:var(--gold); }
+    .stat-label { font-size:.78rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; }
+
+    /* LIVE PRICES */
+    .prices-section { background:var(--dark2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+    .prices-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:2px; }
+    .price-card { background:var(--dark3); padding:24px; transition:background .2s; }
+    .price-card:hover { background:var(--dark4); }
+    .price-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+    .price-icon { width:40px; height:40px; border-radius:50%; background:var(--gold-dim); display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-family:'Syne',sans-serif; font-weight:800; color:var(--gold); }
+    .price-name { font-family:'Syne',sans-serif; font-weight:700; }
+    .price-sym { font-size:.78rem; color:var(--text-dim); }
+    .price-usd { font-size:1.05rem; color:var(--text-dim); margin-bottom:4px; }
+    .price-buy { font-family:'Syne',sans-serif; font-weight:700; font-size:1.15rem; color:var(--gold); }
+    .price-sell { font-size:.82rem; color:var(--text-dim); margin-top:2px; }
+    .price-change { font-size:.78rem; font-weight:500; }
+    .price-change.up { color:var(--green); }
+    .price-change.down { color:var(--red); }
+
+    /* TRUST */
+    .trust-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:2px; }
+    .trust-item { background:var(--dark3); padding:32px 28px; }
+    .trust-icon { font-size:2rem; margin-bottom:14px; }
+    .trust-item h3 { font-family:'Syne',sans-serif; font-weight:700; margin-bottom:8px; }
+    .trust-item p { color:var(--text-dim); font-size:.88rem; line-height:1.7; }
+
+    /* HOW */
+    .how-section { background:var(--dark2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+    .how-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:2px; }
+    .how-step { background:var(--dark3); padding:36px 28px; position:relative; }
+    .how-num { font-family:'Syne',sans-serif; font-size:3rem; font-weight:800; color:rgba(201,168,76,.1); line-height:1; margin-bottom:16px; }
+    .how-step h3 { font-family:'Syne',sans-serif; font-weight:700; margin-bottom:8px; font-size:1rem; }
+    .how-step p { color:var(--text-dim); font-size:.86rem; }
+
+    /* RATES EXPLAIN */
+    .rates-explain { display:grid; grid-template-columns:1fr 1fr; gap:2px; max-width:640px; }
+    .rate-box { background:var(--dark3); padding:28px; border:1px solid var(--border); }
+    .rate-box h3 { font-family:'Syne',sans-serif; font-weight:700; margin-bottom:6px; color:var(--gold); }
+    .rate-big { font-family:'Syne',sans-serif; font-weight:800; font-size:2rem; margin:10px 0; }
+    .rate-box p { color:var(--text-dim); font-size:.83rem; }
+
+    /* CTA BAND */
+    .cta-band { background:linear-gradient(135deg, rgba(201,168,76,.12) 0%, rgba(201,168,76,.04) 100%); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:72px 48px; text-align:center; }
+    .cta-band h2 { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(1.8rem,3vw,2.8rem); margin-bottom:14px; }
+    .cta-band p { color:var(--text-dim); max-width:440px; margin:0 auto 32px; }
+    .cta-btns { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+
+    /* WHY CONGO */
+    .why-grid { display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; }
+    .why-text h2 { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(1.6rem,3vw,2.4rem); letter-spacing:-.02em; margin-bottom:16px; }
+    .why-text p { color:var(--text-dim); margin-bottom:14px; font-size:.95rem; }
+    .why-list { list-style:none; display:flex; flex-direction:column; gap:10px; margin-top:20px; }
+    .why-list li { display:flex; align-items:flex-start; gap:10px; font-size:.9rem; color:var(--text-dim); }
+    .why-list li::before { content:'✓'; color:var(--gold); font-weight:700; flex-shrink:0; }
+    .why-visual { background:var(--dark3); border:1px solid var(--border); padding:40px; }
+    .mini-stat { padding:16px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    .mini-stat:last-child { border-bottom:none; }
+    .mini-stat-label { color:var(--text-dim); font-size:.85rem; }
+    .mini-stat-val { font-family:'Syne',sans-serif; font-weight:700; color:var(--gold); }
+
+    @media(max-width:768px) {
+      .hero { padding:90px 20px 52px; min-height:auto; }
+      .hero h1 { font-size:2.2rem; }
+      .hero-lead { font-size:.95rem; }
+      .hero-cta { flex-direction:column; gap:10px; }
+      .hero-cta .btn { text-align:center; width:100%; }
+      .hero-stats { gap:16px; }
+      .stat-num { font-size:1.2rem; }
+      .prices-grid { grid-template-columns:1fr 1fr; }
+      .rates-explain { grid-template-columns:1fr; max-width:100%; }
+      .why-grid { grid-template-columns:1fr; gap:28px; }
+      .why-visual { padding:24px 20px; }
+      .cta-band { padding:48px 20px; }
+      .cta-btns { flex-direction:column; align-items:center; }
+      .cta-btns .btn { width:100%; max-width:280px; text-align:center; }
+    }
+    @media(max-width:420px) {
+      .prices-grid { grid-template-columns:1fr; }
+      .hero-stats { flex-direction:column; gap:12px; }
+      .stat { border-left:none; border-bottom:1px solid var(--border); padding-left:0; padding-bottom:10px; }
+    }
+  </style>
+
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <div class="hero-tag anim-up">🇨🇬 Service 100% Congolais · Brazzaville</div>
+      <h1 class="anim-up-2">Échangez vos <em>cryptos</em><br>contre des <em>FCFA</em><br>sans arnaque</h1>
+      <p class="hero-lead anim-up-3">CongoSwap est la plateforme locale de confiance pour acheter, vendre et échanger vos cryptomonnaies en République du Congo. Fini les étrangers arnaqueurs.</p>
+      <div class="hero-cta anim-up-3">
+        <a href="buy.html" class="btn btn-gold">Acheter des cryptos</a>
+        <a href="sell.html" class="btn btn-outline">Vendre mes cryptos</a>
+        <a href="exchange.html" class="btn btn-outline">Échanger</a>
+      </div>
+      <div class="hero-stats anim-up-3">
+        <div class="stat"><div class="stat-num">630</div><div class="stat-label">FCFA / $ à l'achat</div></div>
+        <div class="stat"><div class="stat-num">575</div><div class="stat-label">FCFA / $ à la vente</div></div>
+        <div class="stat"><div class="stat-num">6</div><div class="stat-label">Cryptos disponibles</div></div>
+        <div class="stat"><div class="stat-num">&lt;2h</div><div class="stat-label">Délai de traitement</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="ticker"><div id="ticker-content">Chargement des prix...</div></div>
+
+  <!-- LIVE PRICES -->
+  <section class="section prices-section">
+    <span class="section-tag">Taux en temps réel</span>
+    <h2 class="section-title">Prix du marché aujourd'hui</h2>
+    <p class="section-sub">Mis à jour toutes les minutes. Les prix d'achat incluent notre taux de change de 630 FCFA/$.</p>
+    <div class="prices-grid" id="prices-grid">
+      <div style="color:var(--text-dim);padding:20px">Chargement des prix...</div>
+    </div>
+  </section>
+
+  <!-- RATES EXPLAIN -->
+  <section class="section">
+    <span class="section-tag">Nos tarifs</span>
+    <h2 class="section-title">Taux transparents,<br>sans surprise</h2>
+    <p class="section-sub">Nous appliquons deux taux fixes selon l'opération. Pas de frais cachés.</p>
+    <div class="rates-explain">
+      <div class="rate-box">
+        <h3>💸 Vous achetez</h3>
+        <div class="rate-big">630 FCFA</div>
+        <p>par dollar américain. Vous payez en Mobile Money ou virement, nous vous envoyons la crypto.</p>
+      </div>
+      <div class="rate-box">
+        <h3>💰 Vous vendez</h3>
+        <div class="rate-big">575 FCFA</div>
+        <p>par dollar américain. Vous nous envoyez la crypto, nous vous versons les FCFA sur votre compte.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST -->
+  <section class="section how-section">
+    <span class="section-tag">Pourquoi nous choisir</span>
+    <h2 class="section-title">Local, fiable, rapide</h2>
+    <p class="section-sub">CongoSwap a été créé pour protéger les Congolais des arnaques crypto.</p>
+    <div class="trust-grid">
+      <div class="trust-item">
+        <div class="trust-icon">🇨🇬</div>
+        <h3>100% Congolais</h3>
+        <p>Fondé et géré par des Congolais à Brazzaville. Vous connaissez qui vous parle, pas un anonyme étranger.</p>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">🔒</div>
+        <h3>Paiement d'abord</h3>
+        <p>Pour les achats, vous payez via Mobile Money sur un numéro vérifiable. Pour les ventes, vous recevez d'abord confirmation avant d'envoyer.</p>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">⚡</div>
+        <h3>Réponse rapide</h3>
+        <p>Chaque transaction est traitée manuellement par notre équipe dans un délai de 30 minutes à 2 heures.</p>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">📧</div>
+        <h3>Suivi par email</h3>
+        <p>Vous recevez une confirmation à chaque étape. Pas de doute, pas d'anxiété — vous savez où en est votre argent.</p>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">💬</div>
+        <h3>Support Telegram</h3>
+        <p>Notre équipe est joignable directement sur Telegram tous les jours de 8h à 20h pour répondre à vos questions.</p>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">📊</div>
+        <h3>Prix du marché</h3>
+        <p>Nos prix sont basés sur les cours réels de CoinGecko, mis à jour toutes les minutes. Pas de manipulation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section">
+    <span class="section-tag">Le processus</span>
+    <h2 class="section-title">Comment ça marche</h2>
+    <p class="section-sub">En 4 étapes simples, votre échange est traité par notre équipe.</p>
+    <div class="how-grid">
+      <div class="how-step">
+        <div class="how-num">01</div>
+        <h3>Choisissez votre opération</h3>
+        <p>Achat, vente ou échange. Remplissez le formulaire avec vos informations et le montant souhaité.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">02</div>
+        <h3>Effectuez le paiement</h3>
+        <p>Pour un achat, envoyez le montant en FCFA via Mobile Money au numéro indiqué. Joignez votre capture d'écran.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">03</div>
+        <h3>Vérification par notre équipe</h3>
+        <p>Nous vérifions votre paiement ou votre envoi de crypto dans les 30 à 120 minutes.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">04</div>
+        <h3>Transaction finalisée</h3>
+        <p>Vous recevez un email de confirmation et votre crypto (ou vos FCFA) est envoyée directement.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY CONGO -->
+  <section class="section" style="background:var(--dark2); border-top:1px solid var(--border)">
+    <div class="why-grid">
+      <div class="why-text">
+        <span class="section-tag">Notre mission</span>
+        <h2>Protéger les Congolais<br>dans l'univers crypto</h2>
+        <p>Trop de Congolais ont perdu de l'argent en faisant confiance à des inconnus sur les réseaux sociaux ou des plateformes étrangères qui disparaissent du jour au lendemain.</p>
+        <p>CongoSwap existe pour donner accès aux cryptomonnaies de façon sûre, locale et transparente, sans barrière technologique.</p>
+        <ul class="why-list">
+          <li>Vous savez exactement à qui vous envoyez votre argent</li>
+          <li>Le numéro Mobile Money est public et vérifiable</li>
+          <li>Toutes les transactions sont traçables</li>
+          <li>Service disponible 7j/7 de 8h à 20h</li>
+          <li>Pas de compte à créer, pas de KYC complexe</li>
+        </ul>
+      </div>
+      <div class="why-visual">
+        <div class="mini-stat"><span class="mini-stat-label">Taux d'achat USDT</span><span class="mini-stat-val" id="usdt-buy-rate">--</span></div>
+        <div class="mini-stat"><span class="mini-stat-label">Taux de vente USDT</span><span class="mini-stat-val" id="usdt-sell-rate">--</span></div>
+        <div class="mini-stat"><span class="mini-stat-label">BTC en FCFA (achat)</span><span class="mini-stat-val" id="btc-cfa">--</span></div>
+        <div class="mini-stat"><span class="mini-stat-label">ETH en FCFA (achat)</span><span class="mini-stat-val" id="eth-cfa">--</span></div>
+        <div class="mini-stat"><span class="mini-stat-label">Délai moyen</span><span class="mini-stat-val">~45 min</span></div>
+        <div class="mini-stat"><span class="mini-stat-label">Disponibilité</span><span class="mini-stat-val" style="color:var(--green)">● En ligne</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BAND -->
+  <div class="cta-band">
+    <h2>Prêt à faire votre premier échange ?</h2>
+    <p>Rejoignez les Congolais qui font confiance à CongoSwap pour leurs transactions crypto.</p>
+    <div class="cta-btns">
+      <a href="buy.html" class="btn btn-gold">Acheter maintenant</a>
+      <a href="sell.html" class="btn btn-outline">Vendre mes cryptos</a>
+    </div>
+  </div>
+
+</div>
+<div id="footer-placeholder"></div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('nav-placeholder').innerHTML = buildNavHTML('home');
+document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+
+async function initHomepage() {
+  await loadPrices();
+
+  // Ticker
+  document.getElementById('ticker-content').innerHTML = buildTicker();
+
+  // Prices grid
+  const grid = document.getElementById('prices-grid');
+  grid.innerHTML = Object.entries(CRYPTOS).map(([sym, c]) => {
+    const usd = getUsdPrice(sym);
+    const buyCFA = usd * RATES.buy;
+    const sellCFA = usd * RATES.sell;
+    return `
+      <div class="price-card">
+        <div class="price-header">
+          <div class="price-icon">${c.icon}</div>
+          <div><div class="price-name">${c.name}</div><div class="price-sym">${sym}</div></div>
+        </div>
+        <div class="price-usd">${usd ? formatUSD(usd) : '---'}</div>
+        <div class="price-buy">${usd ? formatCFA(buyCFA) : '---'} <span style="font-size:.75rem;font-weight:400;color:var(--text-dim)">à l'achat</span></div>
+        <div class="price-sell">${usd ? formatCFA(sellCFA) : '---'} à la vente</div>
+      </div>`;
+  }).join('');
+
+  // Sidebar rates
+  const usdtUsd = getUsdPrice('USDT');
+  const btcUsd = getUsdPrice('BTC');
+  const ethUsd = getUsdPrice('ETH');
+  document.getElementById('usdt-buy-rate').textContent = `${RATES.buy} FCFA/$`;
+  document.getElementById('usdt-sell-rate').textContent = `${RATES.sell} FCFA/$`;
+  document.getElementById('btc-cfa').textContent = btcUsd ? formatCFA(btcUsd * RATES.buy) : '--';
+  document.getElementById('eth-cfa').textContent = ethUsd ? formatCFA(ethUsd * RATES.buy) : '--';
+}
+
+initHomepage();
+</script>
+</body>
+</html>

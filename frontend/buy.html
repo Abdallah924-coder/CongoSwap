@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CongoSwap — Acheter des cryptomonnaies</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .buy-layout { display:grid; grid-template-columns:1fr 1fr; gap:2px; min-height:calc(100vh - 72px); }
+    .buy-left { background:var(--dark2); padding:60px 48px; border-right:1px solid var(--border); }
+    .buy-right { padding:60px 48px; }
+    .payment-box { background:var(--dark3); border:1px solid var(--gold-dim); padding:28px; margin:24px 0; display:none; }
+    .payment-box.visible { display:block; }
+    .payment-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
+    .payment-row:last-child { border-bottom:none; }
+    .payment-label { color:var(--text-dim); font-size:.85rem; }
+    .payment-val { font-family:'Syne',sans-serif; font-weight:700; }
+    .payment-val.big { font-size:1.2rem; color:var(--gold); }
+    .copy-btn { background:var(--gold-dim); border:none; color:var(--gold); padding:4px 10px; font-size:.75rem; cursor:pointer; font-family:'Syne',sans-serif; letter-spacing:.05em; }
+    .copy-btn:hover { background:var(--gold); color:var(--dark); }
+    .cfa-preview { background:linear-gradient(135deg, rgba(201,168,76,.1), rgba(201,168,76,.03)); border:1px solid var(--border); padding:20px 24px; margin:16px 0; display:none; }
+    .cfa-preview.visible { display:block; }
+    .cfa-amount { font-family:'Syne',sans-serif; font-weight:800; font-size:1.8rem; color:var(--gold); }
+    .cfa-note { font-size:.8rem; color:var(--text-dim); margin-top:4px; }
+    .upload-zone { border:2px dashed var(--border); padding:28px; text-align:center; cursor:pointer; transition:border-color .2s; }
+    .upload-zone:hover { border-color:var(--gold); }
+    .upload-zone input { display:none; }
+    .upload-preview { max-width:100%; max-height:200px; margin-top:12px; display:none; }
+    @media(max-width:900px) {
+      .buy-layout { grid-template-columns:1fr; }
+      .buy-left { border-right:none; border-bottom:1px solid var(--border); padding:40px 20px; }
+      .buy-right { padding:32px 20px; }
+    }
+    @media(max-width:480px) {
+      .payment-row { flex-direction:column; align-items:flex-start; gap:6px; }
+      .payment-val.big { font-size:1rem; }
+      .cfa-amount { font-size:1.4rem; }
+    }
+  </style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page">
+  <div class="buy-layout">
+
+    <!-- LEFT: Info & Payment details -->
+    <div class="buy-left">
+      <span class="section-tag">Acheter</span>
+      <h1 class="section-title">Achetez vos<br>cryptomonnaies</h1>
+      <p style="color:var(--text-dim);margin-bottom:32px;">Remplissez le formulaire, payez via Mobile Money et recevez votre crypto directement dans votre wallet.</p>
+
+      <div style="background:var(--dark3);border:1px solid var(--border);padding:20px;margin-bottom:28px;">
+        <div style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;">Taux d'achat actuel</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--gold)">630 <span style="font-size:1rem;font-weight:400">FCFA / $</span></div>
+        <div style="font-size:.8rem;color:var(--text-dim);margin-top:4px;">Prix crypto du marché + taux de change CongoSwap</div>
+      </div>
+
+      <!-- PAYMENT BOX — always visible -->
+      <div class="payment-box visible" id="payment-box">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:16px;color:var(--gold)">📱 Envoyez le paiement ici</div>
+        <div class="payment-row">
+          <span class="payment-label">Numéro Mobile Money</span>
+          <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span class="payment-val big">+242 06 932 59 37</span>
+            <button class="copy-btn" onclick="copyText('+242 06 932 59 37')">Copier</button>
+          </span>
+        </div>
+        <div class="payment-row">
+          <span class="payment-label">Nom du receveur</span>
+          <span class="payment-val" style="font-size:.88rem;text-align:right;">Michy Magellan<br>DEVOUE LI-MBOUITY</span>
+        </div>
+        <div class="payment-row">
+          <span class="payment-label">Montant à envoyer</span>
+          <span class="payment-val big" id="pay-cfa-amount" style="color:var(--gold)">Entrez un montant →</span>
+        </div>
+        <div style="margin-top:14px;background:rgba(201,168,76,.08);padding:12px;font-size:.82rem;color:var(--text-dim);">
+          ⚠️ Envoyez <strong>exactement</strong> ce montant. Joignez ensuite la capture d'écran de confirmation dans le formulaire.
+        </div>
+      </div>
+
+      <div style="margin-top:24px;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px;">Comment ça marche</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;">
+          <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--gold);flex-shrink:0">1.</span>Choisissez la crypto et entrez le montant en dollars</li>
+          <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--gold);flex-shrink:0">2.</span>Le montant en FCFA s'affiche automatiquement</li>
+          <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--gold);flex-shrink:0">3.</span>Envoyez le montant FCFA au numéro indiqué</li>
+          <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--gold);flex-shrink:0">4.</span>Prenez une capture d'écran et remplissez le formulaire</li>
+          <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--gold);flex-shrink:0">5.</span>Recevez votre crypto dans les 2h maximum</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- RIGHT: Form -->
+    <div class="buy-right">
+      <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.4rem;margin-bottom:28px;">Formulaire d'achat</h2>
+      <form id="buyForm">
+        <div class="form-group">
+          <label for="email">Votre adresse email *</label>
+          <input type="email" id="email" name="email" placeholder="vous@exemple.com" required/>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="crypto">Crypto à acheter *</label>
+            <select id="crypto" required></select>
+          </div>
+          <div class="form-group">
+            <label for="network">Réseau *</label>
+            <select id="network" required></select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="amount_usd">Montant souhaité en USD ($) *</label>
+          <input type="number" id="amount_usd" name="amount_usd" placeholder="Ex: 50" min="1" step="0.01" required/>
+        </div>
+
+        <!-- CFA preview -->
+        <div class="cfa-preview" id="cfa-preview">
+          <div style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Montant à payer en FCFA</div>
+          <div class="cfa-amount" id="cfa-amount">--</div>
+          <div class="cfa-note" id="cfa-note">--</div>
+        </div>
+
+        <div class="form-group">
+          <label for="wallet_address">Votre adresse wallet (pour recevoir la crypto) *</label>
+          <input type="text" id="wallet_address" name="wallet_address" placeholder="Ex: 0x1a2b3c4d5e..." required/>
+        </div>
+
+        <div class="form-group">
+          <label>Capture d'écran du paiement Mobile Money *</label>
+          <div class="upload-zone" id="upload-zone" onclick="document.getElementById('screenshot').click()">
+            <div>📸 Cliquez pour uploader la capture d'écran</div>
+            <div style="font-size:.8rem;color:var(--text-dim);margin-top:6px">JPG, PNG ou PDF · Max 5MB</div>
+            <input type="file" id="screenshot" name="screenshot" accept="image/*,.pdf"/>
+            <img id="upload-preview" class="upload-preview"/>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-gold btn-full" id="submitBtn">Envoyer ma demande d'achat</button>
+        <div id="formAlert" class="alert"></div>
+      </form>
+    </div>
+  </div>
+</div>
+<div id="footer-placeholder"></div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('nav-placeholder').innerHTML = buildNavHTML('buy');
+document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+
+const cryptoSel = document.getElementById('crypto');
+const networkSel = document.getElementById('network');
+const amountUsdEl = document.getElementById('amount_usd');
+const cfaPreview = document.getElementById('cfa-preview');
+const cfaAmountEl = document.getElementById('cfa-amount');
+const cfaNoteEl = document.getElementById('cfa-note');
+const paymentBox = document.getElementById('payment-box');
+const payCfaEl = document.getElementById('pay-cfa-amount');
+
+populateCryptoSelect(cryptoSel);
+
+cryptoSel.addEventListener('change', () => {
+  populateNetworkSelect(networkSel, cryptoSel.value);
+  updateCFA();
+});
+amountUsdEl.addEventListener('input', updateCFA);
+
+function updateCFA() {
+  const usd = parseFloat(amountUsdEl.value) || 0;
+  const cfa = usd * RATES.buy;
+  if (usd > 0) {
+    cfaAmountEl.textContent = formatCFA(cfa);
+    const cryptoUsd = getUsdPrice(cryptoSel.value);
+    const cryptoAmount = cryptoUsd ? (usd / cryptoUsd).toFixed(6) : '--';
+    cfaNoteEl.textContent = `≈ ${cryptoAmount} ${cryptoSel.value || ''}  ·  Taux: ${RATES.buy} FCFA/$`;
+    cfaPreview.classList.add('visible');
+    payCfaEl.textContent = formatCFA(cfa);
+  } else {
+    cfaPreview.classList.remove('visible');
+    payCfaEl.textContent = 'Entrez un montant →';
+  }
+}
+
+// Image preview
+document.getElementById('screenshot').addEventListener('change', function() {
+  const file = this.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('upload-preview');
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => alert('Copié !'));
+}
+
+loadPrices().then(() => updateCFA());
+
+// FORM SUBMIT
+document.getElementById('buyForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const alertEl = document.getElementById('formAlert');
+  alertEl.className = 'alert';
+
+  const usd = parseFloat(amountUsdEl.value);
+  if (!usd || usd <= 0) return;
+  const cfa = usd * RATES.buy;
+
+  const formData = new FormData();
+  formData.append('type', 'buy');
+  formData.append('email', document.getElementById('email').value);
+  formData.append('crypto', cryptoSel.value);
+  formData.append('network', networkSel.value);
+  formData.append('amount_usd', usd);
+  formData.append('amount_cfa', cfa);
+  formData.append('wallet_address', document.getElementById('wallet_address').value);
+  const screenshotFile = document.getElementById('screenshot').files[0];
+  if (screenshotFile) formData.append('screenshot', screenshotFile);
+
+  setLoading(btn, true);
+  try {
+    const r = await fetch(`${API}/api/orders`, { method:'POST', body:formData });
+    const data = await r.json();
+    if (data.success) {
+      goToWaiting(data.order_id);
+    } else {
+      throw new Error(data.error || 'Erreur');
+    }
+  } catch(err) {
+    alertEl.className = 'alert error';
+    alertEl.textContent = 'Erreur lors de l\'envoi. Vérifiez votre connexion ou contactez-nous sur Telegram.';
+  }
+  setLoading(btn, false);
+});
+</script>
+</body>
+</html>

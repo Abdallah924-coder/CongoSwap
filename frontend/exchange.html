@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CongoSwap — Échanger des cryptomonnaies</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .exchange-layout { display:grid; grid-template-columns:1fr 1fr; gap:2px; min-height:calc(100vh - 72px); }
+    .exchange-left { background:var(--dark2); padding:60px 48px; border-right:1px solid var(--border); }
+    .exchange-right { padding:60px 48px; }
+    .fee-notice { background:linear-gradient(135deg,rgba(52,152,219,.1),rgba(52,152,219,.03)); border:1px solid rgba(52,152,219,.25); padding:18px 22px; margin:20px 0; display:none; }
+    .fee-notice.visible { display:block; }
+    .fee-notice h4 { font-family:'Syne',sans-serif; font-weight:700; color:var(--blue); margin-bottom:8px; }
+    .arrow-divider { display:flex; align-items:center; justify-content:center; padding:12px 0; }
+    .arrow-divider span { background:var(--gold-dim); border:1px solid var(--border); color:var(--gold); width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; border-radius:50%; }
+    .confirm-box { background:var(--dark3); border:1px solid var(--border); padding:24px; margin-top:20px; display:none; }
+    .confirm-box.visible { display:block; }
+    .confirm-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:.88rem; }
+    .confirm-row:last-child { border-bottom:none; }
+    .confirm-label { color:var(--text-dim); }
+    .confirm-val { font-family:'Syne',sans-serif; font-weight:600; }
+    @media(max-width:900px) {
+      .exchange-layout { grid-template-columns:1fr; }
+      .exchange-left { border-right:none; border-bottom:1px solid var(--border); padding:40px 20px; }
+      .exchange-right { padding:32px 20px; }
+    }
+    @media(max-width:480px) {
+      .confirm-row { flex-direction:column; gap:2px; }
+      .confirm-row span:last-child { font-size:.95rem; }
+    }
+  </style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page">
+  <div class="exchange-layout">
+
+    <!-- LEFT -->
+    <div class="exchange-left">
+      <span class="section-tag">Échanger</span>
+      <h1 class="section-title">Échangez une<br>crypto contre<br>une autre</h1>
+      <p style="color:var(--text-dim);margin-bottom:32px;">Envoyez une crypto, recevez une autre directement dans votre wallet. Frais fixes de 2%.</p>
+
+      <div style="background:var(--dark3);border:1px solid var(--border);padding:20px;margin-bottom:24px;">
+        <div style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">Frais d'échange</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--blue)">2%</div>
+        <div style="font-size:.82rem;color:var(--text-dim);margin-top:4px;">Sur le montant échangé. Déduit automatiquement.</div>
+      </div>
+
+      <div style="background:var(--dark3);border:1px solid var(--border);padding:20px;margin-bottom:24px;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:14px;">Exemple :</div>
+        <div style="font-size:.88rem;color:var(--text-dim);line-height:1.9;">
+          Vous envoyez <strong style="color:var(--text)">100 USDT</strong><br>
+          Frais 2% = <strong style="color:var(--text)">2 USDT</strong><br>
+          Vous recevez <strong style="color:var(--gold)">98 USDT</strong> en équivalent ETH<br>
+          au taux du marché au moment de l'échange.
+        </div>
+      </div>
+
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;">
+        <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--blue);flex-shrink:0">1.</span>Choisissez la crypto à envoyer et celle à recevoir</li>
+        <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--blue);flex-shrink:0">2.</span>Confirmez les frais de 2% et acceptez</li>
+        <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--blue);flex-shrink:0">3.</span>Notre équipe vous contacte pour procéder à l'échange</li>
+        <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--blue);flex-shrink:0">4.</span>Échange effectué sous 2h, email de confirmation envoyé</li>
+      </ul>
+    </div>
+
+    <!-- RIGHT: Form -->
+    <div class="exchange-right">
+      <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.4rem;margin-bottom:28px;">Formulaire d'échange</h2>
+      <form id="exchangeForm">
+        <div class="form-group">
+          <label for="email">Votre adresse email *</label>
+          <input type="email" id="email" placeholder="vous@exemple.com" required/>
+        </div>
+
+        <!-- FROM -->
+        <div style="background:var(--dark3);border:1px solid var(--border);padding:20px;margin-bottom:4px;">
+          <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">Vous envoyez</div>
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom:0">
+              <label for="exchange_from">Crypto *</label>
+              <select id="exchange_from" required></select>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label for="network_from">Réseau *</label>
+              <select id="network_from" required></select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:14px;margin-bottom:0">
+            <label for="amount_from">Montant en USD *</label>
+            <input type="number" id="amount_from" placeholder="Ex: 50" min="1" step="0.01" required/>
+          </div>
+        </div>
+
+        <!-- ARROW -->
+        <div class="arrow-divider"><span>⇅</span></div>
+
+        <!-- TO -->
+        <div style="background:var(--dark3);border:1px solid var(--border);padding:20px;margin-bottom:16px;">
+          <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">Vous recevez</div>
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom:0">
+              <label for="exchange_to">Crypto *</label>
+              <select id="exchange_to" required></select>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label for="network_to">Réseau *</label>
+              <select id="network_to" required></select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:14px;margin-bottom:0">
+            <label for="wallet_dest">Votre adresse wallet de réception *</label>
+            <input type="text" id="wallet_dest" placeholder="Adresse du wallet où recevoir" required/>
+          </div>
+        </div>
+
+        <!-- FEE NOTICE -->
+        <div class="fee-notice" id="fee-notice">
+          <h4>💡 Récapitulatif de l'échange</h4>
+          <div id="fee-details" style="font-size:.88rem;color:var(--text-dim);line-height:2;"></div>
+        </div>
+
+        <!-- CONFIRM BOX -->
+        <div class="confirm-box" id="confirm-box">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:14px;color:var(--gold);">Récapitulatif final</div>
+          <div class="confirm-row"><span class="confirm-label">Envoi</span><span class="confirm-val" id="conf-from">--</span></div>
+          <div class="confirm-row"><span class="confirm-label">Réception</span><span class="confirm-val" id="conf-to">--</span></div>
+          <div class="confirm-row"><span class="confirm-label">Frais CongoSwap</span><span class="confirm-val" id="conf-fee">--</span></div>
+          <div class="confirm-row" style="background:var(--gold-dim);margin:-1px -24px;padding:10px 24px;">
+            <span style="font-family:'Syne',sans-serif;font-weight:700;">Vous recevez effectivement</span>
+            <span style="font-family:'Syne',sans-serif;font-weight:800;color:var(--gold);" id="conf-net">--</span>
+          </div>
+          <div style="margin-top:16px;">
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:.88rem;color:var(--text-dim);">
+              <input type="checkbox" id="fee-accept" style="width:auto;flex-shrink:0;margin-top:2px;accent-color:var(--gold);" required/>
+              J'accepte les frais de 2% sur cet échange et je souhaite procéder.
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-full" style="background:var(--blue);color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;letter-spacing:.06em;text-transform:uppercase;padding:14px;border:none;cursor:pointer;margin-top:16px;" id="submitBtn">
+          Envoyer ma demande d'échange
+        </button>
+        <div id="formAlert" class="alert"></div>
+      </form>
+    </div>
+  </div>
+</div>
+<div id="footer-placeholder"></div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('nav-placeholder').innerHTML = buildNavHTML('exchange');
+document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+
+const fromSel = document.getElementById('exchange_from');
+const toSel = document.getElementById('exchange_to');
+const fromNet = document.getElementById('network_from');
+const toNet = document.getElementById('network_to');
+const amountEl = document.getElementById('amount_from');
+
+populateCryptoSelect(fromSel);
+populateCryptoSelect(toSel);
+
+fromSel.addEventListener('change', () => { populateNetworkSelect(fromNet, fromSel.value); updateSummary(); });
+toSel.addEventListener('change', () => { populateNetworkSelect(toNet, toSel.value); updateSummary(); });
+amountEl.addEventListener('input', updateSummary);
+
+function updateSummary() {
+  const usd = parseFloat(amountEl.value) || 0;
+  const from = fromSel.value;
+  const to = toSel.value;
+  if (!usd || !from || !to) { 
+    document.getElementById('fee-notice').classList.remove('visible');
+    document.getElementById('confirm-box').classList.remove('visible');
+    return; 
+  }
+  const fee = usd * 0.02;
+  const net = usd - fee;
+  const toUsd = getUsdPrice(to);
+  const cryptoReceive = toUsd ? (net / toUsd).toFixed(6) : '--';
+
+  document.getElementById('fee-details').innerHTML = `
+    Montant envoyé : <strong style="color:var(--text)">${formatUSD(usd)} en ${from}</strong><br>
+    Frais CongoSwap (2%) : <strong style="color:var(--text)">${formatUSD(fee)}</strong><br>
+    Montant net converti : <strong style="color:var(--text)">${formatUSD(net)}</strong><br>
+    Vous recevrez : <strong style="color:var(--gold)">≈ ${cryptoReceive} ${to}</strong>
+  `;
+  document.getElementById('fee-notice').classList.add('visible');
+
+  document.getElementById('conf-from').textContent = `${formatUSD(usd)} en ${from}`;
+  document.getElementById('conf-to').textContent = to;
+  document.getElementById('conf-fee').textContent = formatUSD(fee);
+  document.getElementById('conf-net').textContent = `≈ ${cryptoReceive} ${to}`;
+  document.getElementById('confirm-box').classList.add('visible');
+}
+
+loadPrices().then(updateSummary);
+
+document.getElementById('exchangeForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const alertEl = document.getElementById('formAlert');
+  alertEl.className = 'alert';
+  const formData = new FormData();
+  formData.append('type', 'exchange');
+  formData.append('email', document.getElementById('email').value);
+  formData.append('crypto', fromSel.value);
+  formData.append('exchange_from', fromSel.value);
+  formData.append('exchange_to', toSel.value);
+  formData.append('exchange_network_from', fromNet.value);
+  formData.append('exchange_network_to', toNet.value);
+  formData.append('amount_usd', amountEl.value);
+  formData.append('wallet_address', document.getElementById('wallet_dest').value);
+  setLoading(btn, true);
+  try {
+    const r = await fetch(`${API}/api/orders`, { method:'POST', body:formData });
+    const data = await r.json();
+    if (data.success) goToWaiting(data.order_id);
+    else throw new Error(data.error);
+  } catch {
+    alertEl.className = 'alert error';
+    alertEl.textContent = 'Erreur. Contactez-nous sur Telegram.';
+  }
+  setLoading(btn, false);
+});
+</script>
+</body>
+</html>

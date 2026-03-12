@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CongoSwap — Administration</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    body { background:var(--dark2); }
+
+    /* LOGIN */
+    .login-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .login-card { background:var(--dark3); border:1px solid var(--border); padding:48px; max-width:380px; width:100%; text-align:center; }
+    .login-card h1 { font-family:'Syne',sans-serif; font-weight:800; font-size:1.8rem; margin-bottom:6px; }
+    .login-card p { color:var(--text-dim); margin-bottom:28px; font-size:.88rem; }
+
+    /* ADMIN LAYOUT */
+    .admin-layout { display:grid; grid-template-columns:220px 1fr; min-height:100vh; }
+    .sidebar { background:var(--dark); border-right:1px solid var(--border); padding:20px 0; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .sidebar-logo { padding:16px 24px 24px; border-bottom:1px solid var(--border); }
+    .sidebar-logo .logo { font-size:1.1rem; }
+    .sidebar-logo small { display:block; font-size:.72rem; color:var(--text-dim); margin-top:2px; }
+    .sidebar-nav { padding:16px 0; }
+    .sidebar-link { display:flex; align-items:center; gap:10px; padding:11px 24px; color:var(--text-dim); text-decoration:none; font-size:.85rem; cursor:pointer; transition:all .2s; border:none; background:none; width:100%; text-align:left; }
+    .sidebar-link:hover,.sidebar-link.active { color:var(--text); background:var(--dark3); border-left:3px solid var(--gold); }
+    .sidebar-link span { font-size:1rem; }
+    .sidebar-divider { border-top:1px solid var(--border); margin:10px 0; }
+
+    /* MAIN */
+    .admin-main { padding:32px; overflow-y:auto; }
+    .admin-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
+    .admin-header h2 { font-family:'Syne',sans-serif; font-weight:700; font-size:1.4rem; }
+
+    /* STATS */
+    .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:2px; margin-bottom:28px; }
+    .stat-box { background:var(--dark3); border:1px solid var(--border); padding:20px 22px; }
+    .stat-box-num { font-family:'Syne',sans-serif; font-weight:800; font-size:1.8rem; color:var(--gold); }
+    .stat-box-label { font-size:.75rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin-top:4px; }
+
+    /* FILTERS */
+    .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; align-items:center; }
+    .filter-btn { background:var(--dark3); border:1px solid var(--border); color:var(--text-dim); padding:6px 14px; font-size:.76rem; letter-spacing:.07em; text-transform:uppercase; cursor:pointer; font-family:'Syne',sans-serif; transition:all .2s; }
+    .filter-btn.active,.filter-btn:hover { background:var(--gold); color:var(--dark); border-color:var(--gold); }
+
+    /* ORDERS TABLE */
+    .orders-table { width:100%; border-collapse:collapse; }
+    .orders-table th { font-family:'Syne',sans-serif; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); text-align:left; padding:10px 14px; border-bottom:1px solid var(--border); white-space:nowrap; }
+    .orders-table td { padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.04); font-size:.86rem; vertical-align:middle; }
+    .orders-table tr:hover td { background:var(--dark3); }
+    .order-ref { font-family:monospace; color:var(--gold); font-size:.82rem; }
+    .action-btns { display:flex; gap:6px; }
+    .action-btn { padding:5px 10px; font-size:.72rem; border:none; cursor:pointer; font-family:'Syne',sans-serif; font-weight:700; letter-spacing:.05em; transition:all .15s; }
+    .btn-validate { background:rgba(46,204,113,.15); color:var(--green); border:1px solid rgba(46,204,113,.3); }
+    .btn-validate:hover { background:var(--green); color:var(--dark); }
+    .btn-reject { background:rgba(231,76,60,.1); color:var(--red); border:1px solid rgba(231,76,60,.2); }
+    .btn-reject:hover { background:var(--red); color:#fff; }
+    .btn-view { background:var(--gold-dim); color:var(--gold); border:1px solid var(--border); }
+    .btn-view:hover { background:var(--gold); color:var(--dark); }
+    .btn-delete { background:transparent; color:var(--text-dim); border:1px solid var(--border); font-size:.7rem; padding:4px 8px; }
+    .btn-delete:hover { color:var(--red); border-color:var(--red); }
+
+    /* DETAIL PANEL */
+    .detail-panel { background:var(--dark); border:1px solid var(--border); padding:28px; margin-bottom:24px; display:none; }
+    .detail-panel.open { display:block; }
+    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .detail-field { background:var(--dark3); padding:12px 16px; }
+    .detail-field label { font-size:.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:4px; }
+    .detail-field span { font-family:'Syne',sans-serif; font-weight:600; font-size:.9rem; word-break:break-all; }
+    .screenshot-img { max-width:100%; max-height:300px; border:1px solid var(--border); margin-top:12px; }
+    .note-area { width:100%; background:var(--dark2); border:1px solid var(--border); color:var(--text); padding:10px; font-family:'DM Sans',sans-serif; font-size:.88rem; resize:vertical; min-height:70px; }
+
+    @media(max-width:900px) {
+      .admin-layout { grid-template-columns:1fr; }
+      .sidebar { position:static; height:auto; display:flex; flex-wrap:wrap; gap:0; }
+      .sidebar-logo { padding:14px 20px 14px; border-bottom:none; border-right:1px solid var(--border); }
+      .sidebar-nav { display:flex; flex-wrap:wrap; padding:8px; flex:1; }
+      .sidebar-link { padding:8px 12px; font-size:.75rem; border-left:none !important; border-bottom:2px solid transparent; }
+      .sidebar-link.active, .sidebar-link:hover { border-bottom-color:var(--gold); border-left:none; background:var(--dark3); }
+      .sidebar-divider { display:none; }
+      .admin-main { padding:20px; }
+      .stats-row { grid-template-columns:1fr 1fr; }
+      .detail-grid { grid-template-columns:1fr; }
+      .orders-table th:nth-child(4),
+      .orders-table td:nth-child(4),
+      .orders-table th:nth-child(6),
+      .orders-table td:nth-child(6) { display:none; }
+    }
+    @media(max-width:480px) {
+      .stats-row { grid-template-columns:1fr 1fr; }
+      .orders-table th:nth-child(5),
+      .orders-table td:nth-child(5) { display:none; }
+      .login-card { padding:32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div style="font-size:2.5rem;margin-bottom:16px;">🔐</div>
+    <h1>Congo<span style="color:var(--gold)">Swap</span></h1>
+    <p>Panneau d'administration</p>
+    <form id="loginForm">
+      <div class="form-group" style="text-align:left">
+        <label>Nom d'utilisateur</label>
+        <input type="text" id="admin-user" placeholder="admin" required/>
+      </div>
+      <div class="form-group" style="text-align:left">
+        <label>Mot de passe</label>
+        <input type="password" id="admin-pass" placeholder="••••••••" required/>
+      </div>
+      <button type="submit" class="btn btn-gold btn-full" id="loginBtn">Se connecter</button>
+      <div id="loginAlert" class="alert"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-layout" id="admin-panel" style="display:none">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo">Congo<span>Swap</span></div>
+      <small>Administration</small>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-link active" data-view="dashboard"><span>📊</span>Tableau de bord</button>
+      <button class="sidebar-link" data-view="orders"><span>📋</span>Toutes les commandes</button>
+      <button class="sidebar-link" data-view="pending"><span>⏳</span>En attente</button>
+      <button class="sidebar-link" data-view="validated"><span>✅</span>Validées</button>
+      <button class="sidebar-link" data-view="rejected"><span>❌</span>Refusées</button>
+      <div class="sidebar-divider"></div>
+      <a href="index.html" class="sidebar-link" target="_blank"><span>🌐</span>Voir le site</a>
+      <button class="sidebar-link" id="logoutBtn"><span>🚪</span>Déconnexion</button>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="admin-main">
+    <!-- DASHBOARD -->
+    <div id="view-dashboard">
+      <div class="admin-header">
+        <h2>Tableau de bord</h2>
+        <button class="btn btn-outline" style="font-size:.78rem;padding:8px 16px;" onclick="loadStats();loadOrders()">🔄 Actualiser</button>
+      </div>
+      <div class="stats-row" id="stats-row">
+        <div class="stat-box"><div class="stat-box-num" id="s-total">--</div><div class="stat-box-label">Total commandes</div></div>
+        <div class="stat-box"><div class="stat-box-num" id="s-pending" style="color:var(--gold)">--</div><div class="stat-box-label">En attente</div></div>
+        <div class="stat-box"><div class="stat-box-num" id="s-validated" style="color:var(--green)">--</div><div class="stat-box-label">Validées</div></div>
+        <div class="stat-box"><div class="stat-box-num" id="s-rejected" style="color:var(--red)">--</div><div class="stat-box-label">Refusées</div></div>
+        <div class="stat-box"><div class="stat-box-num" id="s-volume" style="font-size:1.1rem">--</div><div class="stat-box-label">Volume validé (FCFA)</div></div>
+      </div>
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:16px;font-size:1rem;">Commandes récentes</h3>
+      <div id="recent-orders"></div>
+    </div>
+
+    <!-- ORDERS VIEW -->
+    <div id="view-orders" style="display:none">
+      <div class="admin-header">
+        <h2 id="orders-view-title">Toutes les commandes</h2>
+      </div>
+      <div class="filters">
+        <span style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;">Type:</span>
+        <button class="filter-btn active" data-type="">Tous</button>
+        <button class="filter-btn" data-type="buy">Achats</button>
+        <button class="filter-btn" data-type="sell">Ventes</button>
+        <button class="filter-btn" data-type="exchange">Échanges</button>
+      </div>
+      <div id="detail-panel" class="detail-panel"></div>
+      <div id="orders-table-container"></div>
+    </div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+<script>
+let authToken = localStorage.getItem('cs_admin_token');
+let currentStatusFilter = '';
+let currentTypeFilter = '';
+
+// CHECK AUTH
+if (authToken) showAdmin();
+
+// LOGIN
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  const alertEl = document.getElementById('loginAlert');
+  setLoading(btn, true);
+  alertEl.className = 'alert';
+  try {
+    const r = await fetch(`${API}/api/admin/login`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ username:document.getElementById('admin-user').value, password:document.getElementById('admin-pass').value })
+    });
+    const data = await r.json();
+    if (data.token) {
+      authToken = data.token;
+      localStorage.setItem('cs_admin_token', authToken);
+      showAdmin();
+    } else {
+      alertEl.className = 'alert error';
+      alertEl.textContent = data.error || 'Identifiants incorrects';
+    }
+  } catch {
+    alertEl.className = 'alert error';
+    alertEl.textContent = 'Impossible de contacter le serveur.';
+  }
+  setLoading(btn, false);
+});
+
+function showAdmin() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-panel').style.display = 'grid';
+  loadStats();
+  loadOrders();
+}
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  localStorage.removeItem('cs_admin_token');
+  authToken = null;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('admin-panel').style.display = 'none';
+});
+
+// SIDEBAR NAV
+document.querySelectorAll('.sidebar-link[data-view]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.sidebar-link').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const view = this.dataset.view;
+    document.getElementById('view-dashboard').style.display = view === 'dashboard' ? 'block' : 'none';
+    document.getElementById('view-orders').style.display = view !== 'dashboard' ? 'block' : 'none';
+    if (view === 'pending' || view === 'validated' || view === 'rejected') {
+      currentStatusFilter = view;
+      document.getElementById('orders-view-title').textContent = 
+        view === 'pending' ? 'Commandes en attente' : 
+        view === 'validated' ? 'Commandes validées' : 'Commandes refusées';
+    } else {
+      currentStatusFilter = '';
+      document.getElementById('orders-view-title').textContent = 'Toutes les commandes';
+    }
+    loadOrders();
+  });
+});
+
+// TYPE FILTERS
+document.querySelectorAll('.filter-btn[data-type]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.filter-btn[data-type]').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    currentTypeFilter = this.dataset.type;
+    loadOrders();
+  });
+});
+
+async function authFetch(url, opts = {}) {
+  return fetch(url, { ...opts, headers: { ...(opts.headers||{}), 'Authorization': `Bearer ${authToken}` } });
+}
+
+async function loadStats() {
+  try {
+    const r = await authFetch(`${API}/api/admin/stats`);
+    const d = await r.json();
+    document.getElementById('s-total').textContent = d.total;
+    document.getElementById('s-pending').textContent = d.pending;
+    document.getElementById('s-validated').textContent = d.validated;
+    document.getElementById('s-rejected').textContent = d.rejected;
+    document.getElementById('s-volume').textContent = new Intl.NumberFormat('fr-FR').format(d.volume);
+  } catch(e) { console.error(e); }
+}
+
+async function loadOrders(statusOverride) {
+  const status = statusOverride !== undefined ? statusOverride : currentStatusFilter;
+  const params = new URLSearchParams();
+  if (status) params.set('status', status);
+  if (currentTypeFilter) params.set('type', currentTypeFilter);
+  try {
+    const r = await authFetch(`${API}/api/admin/orders?${params}`);
+    const d = await r.json();
+    renderOrders(d.orders || [], document.getElementById('view-orders').style.display !== 'none' ? 'orders-table-container' : 'recent-orders');
+  } catch(e) { console.error(e); }
+}
+
+function renderOrders(orders, containerId) {
+  const container = document.getElementById(containerId);
+  if (!orders.length) {
+    container.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-dim)">Aucune commande trouvée.</div>';
+    return;
+  }
+  const typeLabel = t => t === 'buy' ? '💸 Achat' : t === 'sell' ? '💰 Vente' : '🔄 Échange';
+  container.innerHTML = `
+    <div style="overflow-x:auto">
+    <table class="orders-table">
+      <thead><tr>
+        <th>Référence</th>
+        <th>Type</th>
+        <th>Email</th>
+        <th>Crypto</th>
+        <th>Montant USD</th>
+        <th>Montant FCFA</th>
+        <th>Statut</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr></thead>
+      <tbody>
+        ${orders.map(o => `
+          <tr>
+            <td><span class="order-ref">#${o.id.slice(0,8).toUpperCase()}</span></td>
+            <td>${typeLabel(o.type)}</td>
+            <td style="font-size:.82rem">${o.email}</td>
+            <td><strong>${o.crypto || (o.exchange_from + '→' + o.exchange_to)}</strong></td>
+            <td>${o.amount_usd ? '$' + o.amount_usd : '--'}</td>
+            <td>${o.amount_cfa ? new Intl.NumberFormat('fr-FR').format(o.amount_cfa) + ' F' : '--'}</td>
+            <td><span class="badge badge-${o.status}">${o.status === 'pending' ? 'En attente' : o.status === 'validated' ? 'Validée' : 'Refusée'}</span></td>
+            <td style="font-size:.78rem;color:var(--text-dim)">${new Date(o.created_at).toLocaleDateString('fr-FR')}</td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn btn-view" onclick="viewOrder('${o.id}')">👁</button>
+                ${o.status !== 'validated' ? `<button class="action-btn btn-validate" onclick="updateOrder('${o.id}','validated')">✓</button>` : ''}
+                ${o.status !== 'rejected' ? `<button class="action-btn btn-reject" onclick="updateOrder('${o.id}','rejected')">✗</button>` : ''}
+                <button class="action-btn btn-delete" onclick="deleteOrder('${o.id}')">🗑</button>
+              </div>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    </div>`;
+}
+
+async function viewOrder(id) {
+  const panel = document.getElementById('detail-panel');
+  // Switch to orders view if needed
+  document.getElementById('view-dashboard').style.display = 'none';
+  document.getElementById('view-orders').style.display = 'block';
+
+  try {
+    const r = await authFetch(`${API}/api/orders/${id}`);
+    const o = await r.json();
+    const full = await (await authFetch(`${API}/api/admin/orders?`)).json();
+    const order = full.orders?.find(x => x.id === id) || o;
+
+    panel.classList.add('open');
+    panel.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;">Détail — #${id.slice(0,8).toUpperCase()}</div>
+        <button onclick="document.getElementById('detail-panel').classList.remove('open')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem;">✕</button>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-field"><label>Email</label><span>${order.email}</span></div>
+        <div class="detail-field"><label>Téléphone</label><span>${order.telephone || '--'}</span></div>
+        <div class="detail-field"><label>Type</label><span>${order.type}</span></div>
+        <div class="detail-field"><label>Crypto</label><span>${order.crypto || order.exchange_from + ' → ' + order.exchange_to}</span></div>
+        <div class="detail-field"><label>Réseau</label><span>${order.network || '--'}</span></div>
+        <div class="detail-field"><label>Montant USD</label><span>${order.amount_usd ? '$' + order.amount_usd : '--'}</span></div>
+        <div class="detail-field"><label>Montant FCFA</label><span>${order.amount_cfa ? new Intl.NumberFormat('fr-FR').format(order.amount_cfa) + ' FCFA' : '--'}</span></div>
+        <div class="detail-field"><label>Adresse wallet</label><span>${order.wallet_address || '--'}</span></div>
+        <div class="detail-field"><label>Statut</label><span class="badge badge-${order.status}">${order.status}</span></div>
+        <div class="detail-field"><label>Date</label><span>${new Date(order.created_at).toLocaleString('fr-FR')}</span></div>
+      </div>
+      ${order.screenshot_path ? `
+        <div style="margin-top:16px;">
+          <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Capture d'écran</div>
+          <img src="${API}${order.screenshot_path}" class="screenshot-img" alt="Capture"/>
+          <div style="margin-top:8px;"><a href="${API}${order.screenshot_path}" target="_blank" class="btn btn-outline" style="font-size:.78rem;padding:7px 14px;">Ouvrir en plein écran</a></div>
+        </div>` : ''}
+      <div style="margin-top:20px;">
+        <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Note (envoyée par email si statut change)</div>
+        <textarea class="note-area" id="order-note-${id}" placeholder="Ajouter une note pour le client...">${order.notes || ''}</textarea>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="action-btn btn-validate" style="padding:8px 16px;font-size:.8rem;" onclick="updateOrder('${id}','validated')">✓ Valider</button>
+          <button class="action-btn btn-reject" style="padding:8px 16px;font-size:.8rem;" onclick="updateOrder('${id}','rejected')">✗ Refuser</button>
+        </div>
+      </div>`;
+  } catch(e) { console.error(e); }
+}
+
+async function updateOrder(id, status) {
+  const note = document.getElementById(`order-note-${id}`)?.value || '';
+  if (!confirm(`Confirmer : marquer cette commande comme "${status}" ?`)) return;
+  try {
+    await authFetch(`${API}/api/admin/orders/${id}`, {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ status, notes: note })
+    });
+    loadStats();
+    loadOrders();
+    document.getElementById('detail-panel').classList.remove('open');
+  } catch(e) { alert('Erreur lors de la mise à jour.'); }
+}
+
+async function deleteOrder(id) {
+  if (!confirm('Supprimer définitivement cette commande ?')) return;
+  try {
+    await authFetch(`${API}/api/admin/orders/${id}`, { method:'DELETE' });
+    loadStats();
+    loadOrders();
+  } catch(e) { alert('Erreur.'); }
+}
+</script>
+</body>
+</html>

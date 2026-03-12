@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CongoSwap — Votre transaction est en cours</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .waiting-page { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:100px 20px 60px; }
+    .waiting-card { max-width:520px; width:100%; text-align:center; }
+    .status-icon { font-size:4rem; margin-bottom:24px; animation:pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+    .status-icon.validated { animation:none; }
+    .status-icon.rejected { animation:none; }
+    .ref-code { font-family:monospace; background:var(--dark3); border:1px solid var(--border); padding:10px 20px; display:inline-block; color:var(--gold); letter-spacing:.1em; font-size:1.1rem; margin:16px 0; }
+    .status-bar { display:flex; gap:2px; margin:32px 0; }
+    .status-step { flex:1; height:4px; background:var(--dark3); border-radius:0; transition:background .5s; }
+    .status-step.done { background:var(--gold); }
+    .status-step.active { background:var(--gold); opacity:.5; animation:blink 1.5s ease-in-out infinite; }
+    .status-step.success { background:var(--green); }
+    .status-step.fail { background:var(--red); }
+    @keyframes blink { 0%,100%{opacity:.4} 50%{opacity:1} }
+    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; margin:24px 0; text-align:left; }
+    .detail-item { background:var(--dark3); padding:14px 18px; }
+    .detail-label { font-size:.75rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px; }
+    .detail-val { font-family:'Syne',sans-serif; font-weight:600; font-size:.95rem; }
+    @media(max-width:480px) {
+      .waiting-page { padding:80px 16px 40px; }
+      .detail-grid { grid-template-columns:1fr; }
+      .ref-code { font-size:.9rem; padding:8px 14px; }
+      .status-icon { font-size:3rem; }
+    }
+  </style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page">
+  <div class="waiting-page">
+    <div class="waiting-card">
+      <div class="status-icon" id="status-icon">⏳</div>
+      <span class="section-tag" id="status-tag">En attente de traitement</span>
+      <h1 class="section-title" id="status-title">Votre demande est bien reçue</h1>
+      <p style="color:var(--text-dim);margin-bottom:16px;" id="status-desc">
+        Votre demande est en cours de traitement. Notre équipe vérifie votre transaction. Vous recevrez un email de confirmation dès que ce sera validé.
+      </p>
+
+      <div class="ref-code" id="ref-code">---</div>
+
+      <div class="status-bar">
+        <div class="status-step done" id="step1"></div>
+        <div class="status-step active" id="step2"></div>
+        <div class="status-step" id="step3"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.07em;margin-top:-20px;margin-bottom:28px;">
+        <span>Reçue</span><span>En traitement</span><span>Finalisée</span>
+      </div>
+
+      <div class="detail-grid" id="detail-grid"></div>
+
+      <div style="background:var(--dark3);border:1px solid var(--border);padding:20px;margin-top:12px;text-align:left;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:10px;font-size:.95rem;">⏱ Délai estimé</div>
+        <p style="font-size:.86rem;color:var(--text-dim);">La plupart des transactions sont traitées en <strong style="color:var(--text)">30 à 120 minutes</strong>. En cas de volume élevé, cela peut prendre jusqu'à 2 heures.</p>
+      </div>
+
+      <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="index.html" class="btn btn-outline">← Retour à l'accueil</a>
+        <a href="https://t.me/VOTRE_USERNAME" target="_blank" class="btn btn-gold">Contacter sur Telegram</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="footer-placeholder"></div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('nav-placeholder').innerHTML = buildNavHTML('');
+document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+
+const params = new URLSearchParams(window.location.search);
+const orderId = params.get('id');
+
+function setStatus(status, type, amount_usd, amount_cfa, crypto) {
+  const icon = document.getElementById('status-icon');
+  const tag = document.getElementById('status-tag');
+  const title = document.getElementById('status-title');
+  const desc = document.getElementById('status-desc');
+  const s1 = document.getElementById('step1');
+  const s2 = document.getElementById('step2');
+  const s3 = document.getElementById('step3');
+  const typeLabel = type === 'buy' ? 'Achat' : type === 'sell' ? 'Vente' : 'Échange';
+
+  if (status === 'pending') {
+    icon.textContent = '⏳';
+    tag.textContent = 'En attente';
+    title.textContent = 'Transaction en cours de vérification';
+    desc.textContent = 'Notre équipe examine votre transaction. Un email de confirmation vous sera envoyé dès que tout sera validé.';
+    s1.className = 'status-step done';
+    s2.className = 'status-step active';
+    s3.className = 'status-step';
+  } else if (status === 'validated') {
+    icon.textContent = '✅';
+    icon.className = 'status-icon validated';
+    tag.textContent = 'Transaction validée !';
+    tag.style.color = 'var(--green)';
+    title.textContent = 'Votre transaction a été traitée avec succès';
+    desc.textContent = 'Félicitations ! Votre transaction a été validée. Vous avez reçu un email de confirmation. Merci de faire confiance à CongoSwap.';
+    s1.className = 'status-step success';
+    s2.className = 'status-step success';
+    s3.className = 'status-step success';
+  } else if (status === 'rejected') {
+    icon.textContent = '❌';
+    icon.className = 'status-icon rejected';
+    tag.textContent = 'Transaction refusée';
+    tag.style.color = 'var(--red)';
+    title.textContent = 'Votre transaction n\'a pas pu être traitée';
+    desc.textContent = 'Votre transaction a été refusée. Consultez votre email pour plus de détails, ou contactez-nous sur Telegram pour obtenir de l\'aide.';
+    s1.className = 'status-step done';
+    s2.className = 'status-step fail';
+    s3.className = 'status-step fail';
+  }
+
+  // Detail grid
+  document.getElementById('detail-grid').innerHTML = `
+    <div class="detail-item"><div class="detail-label">Type</div><div class="detail-val">${typeLabel}</div></div>
+    <div class="detail-item"><div class="detail-label">Crypto</div><div class="detail-val">${crypto || '--'}</div></div>
+    ${amount_usd ? `<div class="detail-item"><div class="detail-label">Montant USD</div><div class="detail-val">${formatUSD(amount_usd)}</div></div>` : ''}
+    ${amount_cfa ? `<div class="detail-item"><div class="detail-label">Montant FCFA</div><div class="detail-val">${formatCFA(amount_cfa)}</div></div>` : ''}
+  `;
+}
+
+async function checkStatus() {
+  if (!orderId) {
+    document.getElementById('status-title').textContent = 'Référence introuvable';
+    document.getElementById('status-desc').textContent = 'Aucun identifiant de commande trouvé dans l\'URL.';
+    return;
+  }
+  document.getElementById('ref-code').textContent = `#${orderId.slice(0,8).toUpperCase()}`;
+  try {
+    const r = await fetch(`${API}/api/orders/${orderId}`);
+    if (!r.ok) throw new Error();
+    const order = await r.json();
+    setStatus(order.status, order.type, order.amount_usd, order.amount_cfa, order.crypto);
+    // Auto-refresh if still pending
+    if (order.status === 'pending') {
+      setTimeout(checkStatus, 30000);
+    }
+  } catch {
+    document.getElementById('status-desc').textContent = 'Impossible de charger le statut. Vérifiez votre connexion.';
+  }
+}
+
+checkStatus();
+</script>
+</body>
+</html>
