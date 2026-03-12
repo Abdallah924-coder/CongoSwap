@@ -29,12 +29,12 @@ const NETWORKS = {
 // Adresses de réception pour les ventes (client envoie ici)
 // ⚠️ À REMPLIR avec vos vraies adresses
 const WALLET_ADDRESSES = {
-  BTC:  { address: '1F7nZDdEw6AcEWRWG18LLDCiHggh3vYFoW',  network: 'Bitcoin (BTC)' },
-  ETH:  { address: '0x90439961b090f8b51c28023e30213e318db227f3',  network: 'Ethereum (ERC-20)' },
-  USDT: { address: 'TATtuLm5JBWHZvtACk2AJ2iqPGJRpnZ5Rt', network: 'Tron (TRC-20)' },
-  BNB:  { address: '0x90439961b090f8b51c28023e30213e318db227f3',  network: 'BNB Smart Chain (BEP-20)' },
-  SOL:  { address: '4rFEr619w8g96qFBd9DcrUjTDSFXbtCC3iDfANVEYPz5',  network: 'Solana' },
-  XRP:  { address: 'rJxyARi428MZncrKuWP13gmm4XnjoV9Yxk',  network: 'Ripple (XRP)' },
+  BTC:  { address: '1F7nZDdEw6AcEWRWG18LLDCiHggh3vYFoW',          network: 'Bitcoin (BTC)' },
+  ETH:  { address: '0x90439961b090f8b51c28023e30213e318db227f3',    network: 'Ethereum (ERC-20)' },
+  USDT: { address: 'TATtuLm5JBWHZvtACk2AJ2iqPGJRpnZ5Rt',           network: 'Tron (TRC-20)' },
+  BNB:  { address: '0x90439961b090f8b51c28023e30213e318db227f3',    network: 'BNB Smart Chain (BEP-20)' },
+  SOL:  { address: '4rFEr619w8g96qFBd9DcrUjTDSFXbtCC3iDfANVEYPz5', network: 'Solana' },
+  XRP:  { address: 'rJxyARi428MZncrKuWP13gmm4XnjoV9Yxk',           network: 'Ripple (XRP)' },
 };
 
 // ─── PRICE CACHE ──────────────────────────────────────────────
@@ -156,7 +156,7 @@ function setLoading(btn, loading) {
 
 // Go to waiting page
 function goToWaiting(orderId) {
-  window.location.href = `waiting.html?id=${orderId}`;
+  window.location.href = '/waiting.html?id=' + orderId;
 }
 
 // ─── GOOGLE ANALYTICS ─────────────────────────────────────────
