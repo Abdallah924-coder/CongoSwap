@@ -29,12 +29,12 @@ const NETWORKS = {
 // Adresses de réception pour les ventes (client envoie ici)
 // ⚠️ À REMPLIR avec vos vraies adresses
 const WALLET_ADDRESSES = {
-  BTC:  { address: 'À_REMPLIR_BTC',  network: 'Bitcoin (BTC)' },
-  ETH:  { address: 'À_REMPLIR_ETH',  network: 'Ethereum (ERC-20)' },
-  USDT: { address: 'À_REMPLIR_USDT', network: 'Tron (TRC-20)' },
-  BNB:  { address: 'À_REMPLIR_BNB',  network: 'BNB Smart Chain (BEP-20)' },
-  SOL:  { address: 'À_REMPLIR_SOL',  network: 'Solana' },
-  XRP:  { address: 'À_REMPLIR_XRP',  network: 'Ripple (XRP)' },
+  BTC:  { address: '1F7nZDdEw6AcEWRWG18LLDCiHggh3vYFoW',  network: 'Bitcoin (BTC)' },
+  ETH:  { address: '0x90439961b090f8b51c28023e30213e318db227f3',  network: 'Ethereum (ERC-20)' },
+  USDT: { address: 'TATtuLm5JBWHZvtACk2AJ2iqPGJRpnZ5Rt', network: 'Tron (TRC-20)' },
+  BNB:  { address: '0x90439961b090f8b51c28023e30213e318db227f3',  network: 'BNB Smart Chain (BEP-20)' },
+  SOL:  { address: '4rFEr619w8g96qFBd9DcrUjTDSFXbtCC3iDfANVEYPz5',  network: 'Solana' },
+  XRP:  { address: 'rJxyARi428MZncrKuWP13gmm4XnjoV9Yxk',  network: 'Ripple (XRP)' },
 };
 
 // ─── PRICE CACHE ──────────────────────────────────────────────
@@ -158,6 +158,19 @@ function setLoading(btn, loading) {
 function goToWaiting(orderId) {
   window.location.href = `waiting.html?id=${orderId}`;
 }
+
+// ─── GOOGLE ANALYTICS ─────────────────────────────────────────
+(function() {
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://www.googletagmanager.com/gtag/js?id=G-5858WNL8PS';
+  document.head.appendChild(s);
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  window.gtag = gtag;
+  gtag('js', new Date());
+  gtag('config', 'G-5858WNL8PS');
+})();
 
 // ─── HAMBURGER INIT ───────────────────────────────────────────
 // S'exécute après que buildNavHTML a injecté le DOM
