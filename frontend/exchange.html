@@ -94,6 +94,19 @@
           </div>
         </div>
 
+        <!-- ADRESSE DE RÉCEPTION CONGOSWAP -->
+        <div id="wallet-box" style="display:none;background:var(--dark2);border:1px solid var(--gold-dim);padding:20px;margin-bottom:4px;">
+          <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">Envoyez votre crypto ici</div>
+          <div style="font-size:.78rem;color:var(--text-dim);margin-bottom:4px;">RESEAU</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px;" id="wallet-network">--</div>
+          <div style="font-size:.78rem;color:var(--text-dim);margin-bottom:6px;">ADRESSE CONGOSWAP</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--gold);word-break:break-all;margin-bottom:12px;" id="wallet-addr">--</div>
+          <button type="button" onclick="copyText(document.getElementById('wallet-addr').textContent)" style="background:var(--gold-dim);border:none;color:var(--gold);padding:6px 14px;font-size:.78rem;cursor:pointer;font-family:'Syne',sans-serif;">Copier l'adresse</button>
+          <div style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);padding:10px 14px;margin-top:14px;font-size:.8rem;color:#e74c3c;">
+            Envoyez uniquement la crypto selectionnee sur ce reseau. Tout envoi incorrect sera perdu.
+          </div>
+        </div>
+
         <!-- ARROW -->
         <div class="arrow-divider"><span>⇅</span></div>
 
@@ -164,7 +177,20 @@ const amountEl = document.getElementById('amount_from');
 populateCryptoSelect(fromSel);
 populateCryptoSelect(toSel);
 
-fromSel.addEventListener('change', () => { populateNetworkSelect(fromNet, fromSel.value); updateSummary(); });
+fromSel.addEventListener('change', () => {
+  populateNetworkSelect(fromNet, fromSel.value);
+  updateSummary();
+  // Afficher adresse CongoSwap
+  const w = WALLET_ADDRESSES[fromSel.value];
+  const box = document.getElementById('wallet-box');
+  if (w) {
+    document.getElementById('wallet-addr').textContent = w.address;
+    document.getElementById('wallet-network').textContent = w.network;
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
+});
 toSel.addEventListener('change', () => { populateNetworkSelect(toNet, toSel.value); updateSummary(); });
 amountEl.addEventListener('input', updateSummary);
 
