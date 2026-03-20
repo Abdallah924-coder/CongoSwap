@@ -153,14 +153,14 @@ populateCryptoSelect(cryptoSel);
 
 cryptoSel.addEventListener('change', () => {
   populateNetworkSelect(networkSel, cryptoSel.value);
+  // Sélectionner automatiquement le premier réseau
+  if (networkSel.options.length > 1) {
+    networkSel.selectedIndex = 1;
+  }
   updateWalletDest();
   updateCFAReceive();
 });
 networkSel.addEventListener('change', () => {
-  // Mettre à jour le réseau affiché dans le bloc wallet
-  if (networkSel.value) {
-    document.getElementById('dest-network').textContent = networkSel.value;
-  }
   updateWalletDest();
 });
 amountUsdEl.addEventListener('input', updateCFAReceive);
@@ -169,14 +169,14 @@ function updateWalletDest() {
   const sym = cryptoSel.value;
   if (!sym) return;
   const wallet = WALLET_ADDRESSES[sym];
-  // Réseau : si l'utilisateur a déjà choisi un réseau, on l'affiche, sinon le réseau par défaut de la crypto
   const selectedNetwork = networkSel.value || wallet?.network || '--';
-  document.getElementById('dest-address').textContent = wallet?.address || 'Adresse à configurer dans app.js';
+  document.getElementById('dest-address').textContent = wallet?.address || 'Adresse a configurer';
   document.getElementById('dest-network').textContent = selectedNetwork;
   document.getElementById('dest-crypto-warn').textContent = sym;
   document.getElementById('wallet-dest').style.display = 'block';
+  document.getElementById('wallet-dest').classList.add('visible');
   document.getElementById('copy-addr-btn').onclick = () => {
-    navigator.clipboard.writeText(wallet?.address || '').then(() => alert('Adresse copiée !')).catch(() => {
+    navigator.clipboard.writeText(wallet?.address || '').then(() => alert('Adresse copiee !')).catch(() => {
       prompt('Copiez cette adresse :', wallet?.address || '');
     });
   };
