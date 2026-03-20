@@ -168,16 +168,15 @@ amountUsdEl.addEventListener('input', updateCFAReceive);
 function updateWalletDest() {
   const sym = cryptoSel.value;
   if (!sym) return;
-  const wallet = WALLET_ADDRESSES[sym];
-  const selectedNetwork = networkSel.value || wallet?.network || '--';
-  document.getElementById('dest-address').textContent = wallet?.address || 'Adresse a configurer';
+  const selectedNetwork = networkSel.value || WALLET_ADDRESSES[sym]?.network || '--';
+  const address = getWalletAddress(sym, selectedNetwork);
+  document.getElementById('dest-address').textContent = address || 'Adresse a configurer';
   document.getElementById('dest-network').textContent = selectedNetwork;
   document.getElementById('dest-crypto-warn').textContent = sym;
   document.getElementById('wallet-dest').style.display = 'block';
-  document.getElementById('wallet-dest').classList.add('visible');
   document.getElementById('copy-addr-btn').onclick = () => {
-    navigator.clipboard.writeText(wallet?.address || '').then(() => alert('Adresse copiee !')).catch(() => {
-      prompt('Copiez cette adresse :', wallet?.address || '');
+    navigator.clipboard.writeText(address).then(() => alert('Adresse copiee !')).catch(() => {
+      prompt('Copiez cette adresse :', address);
     });
   };
 }

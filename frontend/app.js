@@ -34,8 +34,7 @@ const NETWORKS = {
   XRP:  ['Ripple (XRP)'],
 };
 
-// Adresses de réception pour les ventes (client envoie ici)
-// ⚠️ À REMPLIR avec vos vraies adresses
+// Adresses par réseau
 const WALLET_ADDRESSES = {
   BTC:  { address: '1F7nZDdEw6AcEWRWG18LLDCiHggh3vYFoW',          network: 'Bitcoin (BTC)' },
   ETH:  { address: '0x90439961b090f8b51c28023e30213e318db227f3',    network: 'Ethereum (ERC-20)' },
@@ -44,6 +43,24 @@ const WALLET_ADDRESSES = {
   SOL:  { address: '4rFEr619w8g96qFBd9DcrUjTDSFXbtCC3iDfANVEYPz5', network: 'Solana' },
   XRP:  { address: 'rJxyARi428MZncrKuWP13gmm4XnjoV9Yxk',           network: 'Ripple (XRP)' },
 };
+
+// Adresses par réseau (pour USDT multi-réseau)
+const WALLET_BY_NETWORK = {
+  'Bitcoin (BTC)':             '1F7nZDdEw6AcEWRWG18LLDCiHggh3vYFoW',
+  'Ethereum (ERC-20)':         '0x90439961b090f8b51c28023e30213e318db227f3',
+  'Arbitrum':                  '0x90439961b090f8b51c28023e30213e318db227f3',
+  'Optimism':                  '0x90439961b090f8b51c28023e30213e318db227f3',
+  'Tron (TRC-20)':             'TATtuLm5JBWHZvtACk2AJ2iqPGJRpnZ5Rt',
+  'BNB Smart Chain (BEP-20)':  '0x90439961b090f8b51c28023e30213e318db227f3',
+  'Solana':                    '4rFEr619w8g96qFBd9DcrUjTDSFXbtCC3iDfANVEYPz5',
+  'Ripple (XRP)':              'rJxyARi428MZncrKuWP13gmm4XnjoV9Yxk',
+};
+
+function getWalletAddress(crypto, network) {
+  // Priorité : adresse par réseau si disponible
+  if (network && WALLET_BY_NETWORK[network]) return WALLET_BY_NETWORK[network];
+  return WALLET_ADDRESSES[crypto]?.address || '';
+}
 
 // ─── PRICE CACHE ──────────────────────────────────────────────
 let _prices = {};

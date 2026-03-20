@@ -187,17 +187,23 @@ populateCryptoSelect(toSel);
 fromSel.addEventListener('change', () => {
   populateNetworkSelect(fromNet, fromSel.value);
   updateSummary();
-  // Afficher adresse CongoSwap
-  const w = WALLET_ADDRESSES[fromSel.value];
-  const box = document.getElementById('wallet-box');
-  if (w) {
-    document.getElementById('wallet-addr').textContent = w.address;
-    document.getElementById('wallet-network').textContent = w.network;
-    box.style.display = 'block';
-  } else {
-    box.style.display = 'none';
-  }
+  const network = fromNet.options.length > 1 ? fromNet.options[1].value : '';
+  if (fromNet.options.length > 1) fromNet.selectedIndex = 1;
+  updateExchangeWallet();
 });
+
+fromNet.addEventListener('change', () => { updateExchangeWallet(); updateSummary(); });
+
+function updateExchangeWallet() {
+  const sym     = fromSel.value;
+  const network = fromNet.value;
+  const box     = document.getElementById('wallet-box');
+  if (!sym) { box.style.display = 'none'; return; }
+  const address = getWalletAddress(sym, network);
+  document.getElementById('wallet-addr').textContent    = address;
+  document.getElementById('wallet-network').textContent = network || WALLET_ADDRESSES[sym]?.network || '--';
+  box.style.display = 'block';
+}
 toSel.addEventListener('change', () => { populateNetworkSelect(toNet, toSel.value); updateSummary(); });
 amountEl.addEventListener('input', updateSummary);
 
