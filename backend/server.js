@@ -251,6 +251,30 @@ app.get('/api/orders/:id', async (req, res) => {
   res.json({ id, type, status, crypto, amount_usd, amount_cfa, created_at });
 });
 
+// Clients fideles (emails masques, min 2 commandes)
+app.get('/api/trusted-clients', async (req, res) => {
+  try {
+    const orders = await dbConn.collection('orders').find({ status: 'validated' }).toArray();
+    const count = {};
+    orders.forEach(function(o) {
+      if (o.email) count[o.email] = (count[o.email] || 0) + 1;
+    });
+    const frequent = Object.entries(count)
+      .filter(function(e) { return e[1] >= 2; })
+      .sort(function(a, b) { return b[1] - a[1]; })
+      .slice(0, 8)
+      .map(function(e) {
+        const email = e[0];
+        const at = email.indexOf('@');
+        const name = email.slice(0, at);
+        const domain = email.slice(at);
+        const masked = name[0] + '*'.repeat(Math.max(name.length - 2, 3)) + name[name.length - 1] + domain;
+        return masked;
+      });
+    res.json({ clients: frequent });
+  } catch(e) { res.json({ clients: [] }); }
+});
+
 app.post('/api/admin/login', async (req, res) => {
   const { username, password } = req.body;
   const user = await db.getAdmin(username);
