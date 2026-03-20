@@ -188,15 +188,21 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
       '</div><p>Vous serez notifie par email des que votre transaction sera traitee.</p></div>'
     ).catch(function(e) { console.error('Email erreur:', e.message); });
 
+    const emoji = type === 'buy' ? '💸' : type === 'sell' ? '💰' : '🔄';
+    const sep = '───────────────────';
     sendTelegram(
-      '<b>Nouvelle commande CongoSwap</b>\n' +
-      '<b>Ref:</b> #' + id.slice(0,8).toUpperCase() + '\n' +
-      '<b>Type:</b> ' + typeLabel + '\n' +
-      '<b>Email:</b> ' + email + '\n' +
-      '<b>Tel:</b> ' + (phone || 'N/A') + '\n' +
-      '<b>Crypto:</b> ' + (crypto || (exchange_from + '->' + exchange_to)) + '\n' +
-      '<b>Montant:</b> ' + (amount_usd ? '$' + amount_usd + ' soit ' + amount_cfa + ' FCFA' : 'Echange') + '\n' +
-      '<b>Wallet:</b> ' + (wallet_address || 'N/A')
+      emoji + ' <b>' + typeLabel.toUpperCase() + ' — CongoSwap</b>\n' +
+      sep + '\n' +
+      '🆔 <b>Ref :</b> <code>#' + id.slice(0,8).toUpperCase() + '</code>\n' +
+      '📧 <b>Email :</b> ' + email + '\n' +
+      '📱 <b>Tel :</b> ' + (phone || 'Non renseigne') + '\n' +
+      sep + '\n' +
+      '💎 <b>Crypto :</b> ' + (crypto || (exchange_from + ' → ' + exchange_to)) + '\n' +
+      '🌐 <b>Reseau :</b> ' + (network || exchange_network_from || 'N/A') + '\n' +
+      '💵 <b>Montant :</b> ' + (amount_usd ? '$' + amount_usd + '  (~' + amount_cfa + ' FCFA)' : 'Echange') + '\n' +
+      '🔗 <b>Wallet :</b> <code>' + (wallet_address || 'N/A') + '</code>\n' +
+      sep + '\n' +
+      '⏰ ' + new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Brazzaville' })
     ).catch(function(e) { console.error('Telegram erreur:', e.message); });
 
     res.json({ success: true, order_id: id });

@@ -217,6 +217,7 @@ document.getElementById('sellForm').addEventListener('submit', async function(e)
   const formData = new FormData();
   formData.append('type', 'sell');
   formData.append('email', document.getElementById('email').value);
+  formData.append('phone', document.getElementById('mobile_number').value);
   formData.append('crypto', cryptoSel.value);
   formData.append('network', networkSel.value);
   formData.append('amount_usd', usd);
