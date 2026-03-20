@@ -205,6 +205,24 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
       '</div><p>Vous serez notifie par email des que votre transaction sera traitee.</p></div>'
     ).catch(function(e) { console.error('Email erreur:', e.message); });
 
+    // Email notification admin
+    sendEmail(process.env.EMAIL_USER, 'CongoSwap - Nouvelle ' + typeLabel + ' #' + id.slice(0,8).toUpperCase(),
+      '<div style="font-family:sans-serif;max-width:500px;margin:auto;background:#0d0d0d;color:#f0ede6;padding:32px;border-radius:8px;">' +
+      '<h2 style="color:#C9A84C;">Nouvelle commande</h2>' +
+      '<div style="background:#1c1c1c;padding:16px;border-radius:6px;margin:16px 0;">' +
+      '<p><strong>Ref :</strong> #' + id.slice(0,8).toUpperCase() + '</p>' +
+      '<p><strong>Type :</strong> ' + typeLabel + '</p>' +
+      '<p><strong>Email client :</strong> ' + email + '</p>' +
+      '<p><strong>Telephone :</strong> ' + (phone || 'Non renseigne') + '</p>' +
+      '<p><strong>Crypto :</strong> ' + (crypto || (exchange_from + ' → ' + exchange_to)) + '</p>' +
+      '<p><strong>Reseau :</strong> ' + (network || exchange_network_from || 'N/A') + '</p>' +
+      (amount_usd ? '<p><strong>Montant :</strong> $' + amount_usd + ' soit ' + amount_cfa + ' FCFA</p>' : '') +
+      '<p><strong>Wallet client :</strong> ' + (wallet_address || 'N/A') + '</p>' +
+      '</div>' +
+      '<a href="https://congoswap.onrender.com/admin.html" style="background:#C9A84C;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;display:inline-block;margin-top:8px;">Voir dans l\'admin</a>' +
+      '</div>'
+    ).catch(function(e) { console.error('Email admin erreur:', e.message); });
+
     const emoji = type === 'buy' ? '💸' : type === 'sell' ? '💰' : '🔄';
     const sep = '───────────────────';
     sendTelegram(
