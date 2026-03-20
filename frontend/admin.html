@@ -298,6 +298,7 @@ function renderOrders(orders, containerId) {
         <th>Référence</th>
         <th>Type</th>
         <th>Email</th>
+        <th>Téléphone</th>
         <th>Crypto</th>
         <th>Montant USD</th>
         <th>Montant FCFA</th>
@@ -311,7 +312,8 @@ function renderOrders(orders, containerId) {
             <td><span class="order-ref">#${o.id.slice(0,8).toUpperCase()}</span></td>
             <td>${typeLabel(o.type)}</td>
             <td style="font-size:.82rem">${o.email}</td>
-            <td><strong>${o.crypto || (o.exchange_from + '→' + o.exchange_to)}</strong></td>
+            <td style="color:var(--gold);font-weight:600">${o.phone || '--'}</td>
+            <td><strong>${o.crypto || (o.exchange_from + '->' + o.exchange_to)}</strong></td>
             <td>${o.amount_usd ? '$' + o.amount_usd : '--'}</td>
             <td>${o.amount_cfa ? new Intl.NumberFormat('fr-FR').format(o.amount_cfa) + ' F' : '--'}</td>
             <td><span class="badge badge-${o.status}">${o.status === 'pending' ? 'En attente' : o.status === 'validated' ? 'Validée' : 'Refusée'}</span></td>
@@ -350,7 +352,7 @@ async function viewOrder(id) {
       </div>
       <div class="detail-grid">
         <div class="detail-field"><label>Email</label><span>${order.email}</span></div>
-        <div class="detail-field"><label>Téléphone</label><span>${order.telephone || '--'}</span></div>
+        <div class="detail-field"><label>Telephone</label><span style="color:var(--gold);font-size:1rem;">${order.phone || '--'}</span></div>
         <div class="detail-field"><label>Type</label><span>${order.type}</span></div>
         <div class="detail-field"><label>Crypto</label><span>${order.crypto || order.exchange_from + ' → ' + order.exchange_to}</span></div>
         <div class="detail-field"><label>Réseau</label><span>${order.network || '--'}</span></div>
