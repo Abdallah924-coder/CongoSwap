@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon_192.png">
+  <title>CongoSwap — Conditions & Confidentialité</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .legal-layout { max-width:780px; margin:0 auto; padding:100px 28px 80px; }
+    .legal-tabs { display:flex; gap:2px; margin-bottom:40px; }
+    .legal-tab { flex:1; padding:12px; text-align:center; background:var(--dark3); border:1px solid var(--border); cursor:pointer; font-family:'Syne',sans-serif; font-size:.82rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--text-dim); transition:all .2s; }
+    .legal-tab.active { background:var(--gold); color:var(--dark); border-color:var(--gold); }
+    .legal-content { display:none; }
+    .legal-content.active { display:block; }
+    .legal-content h2 { font-family:'Syne',sans-serif; font-weight:800; font-size:1.5rem; margin:32px 0 12px; color:var(--gold); }
+    .legal-content h2:first-child { margin-top:0; }
+    .legal-content p { color:var(--text-dim); line-height:1.8; margin-bottom:14px; font-size:.92rem; }
+    .legal-content ul { color:var(--text-dim); line-height:1.8; margin-bottom:14px; padding-left:20px; font-size:.92rem; }
+    .legal-content li { margin-bottom:6px; }
+    .legal-date { font-size:.78rem; color:var(--text-dim); margin-bottom:32px; }
+  </style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page">
+  <div class="legal-layout">
+    <span class="section-tag">Informations légales</span>
+    <h1 class="section-title" style="font-size:2rem;margin-bottom:8px;">Conditions & Confidentialité</h1>
+
+    <div class="legal-tabs">
+      <div class="legal-tab active" onclick="showTab('cgu')">Conditions d'utilisation</div>
+      <div class="legal-tab" onclick="showTab('privacy')">Politique de confidentialité</div>
+    </div>
+
+    <!-- CGU -->
+    <div class="legal-content active" id="tab-cgu">
+      <div class="legal-date">Dernière mise à jour : Mars 2026</div>
+
+      <h2>1. Présentation du service</h2>
+      <p>CongoSwap est une plateforme de courtage en cryptomonnaies basée en République du Congo. Nous facilitons l'achat, la vente et l'échange de cryptomonnaies contre des FCFA via Mobile Money, de manière manuelle et transparente.</p>
+
+      <h2>2. Acceptation des conditions</h2>
+      <p>En utilisant CongoSwap, vous acceptez les présentes conditions d'utilisation dans leur intégralité. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre service.</p>
+
+      <h2>3. Nature du service</h2>
+      <p>CongoSwap agit en tant qu'intermédiaire de gré à gré (OTC). Toutes les transactions sont traitées manuellement par notre équipe. Nous ne sommes pas une plateforme d'échange automatisée.</p>
+      <ul>
+        <li>Les taux sont fixés par CongoSwap et peuvent évoluer sans préavis</li>
+        <li>Le taux applicable est celui affiché au moment de la soumission de votre demande</li>
+        <li>Les délais de traitement sont estimatifs et non garantis</li>
+      </ul>
+
+      <h2>4. Conditions d'utilisation</h2>
+      <p>Pour utiliser CongoSwap, vous devez :</p>
+      <ul>
+        <li>Être âgé d'au moins 18 ans</li>
+        <li>Fournir des informations exactes et complètes</li>
+        <li>Utiliser le service uniquement pour des transactions légales</li>
+        <li>Ne pas tenter de frauder ou d'escroquer CongoSwap ou ses utilisateurs</li>
+      </ul>
+
+      <h2>5. Responsabilités de l'utilisateur</h2>
+      <p>L'utilisateur est seul responsable de :</p>
+      <ul>
+        <li>L'exactitude des adresses wallet fournies — toute erreur est irréversible</li>
+        <li>L'exactitude de son numéro Mobile Money</li>
+        <li>La légalité de l'origine des fonds envoyés</li>
+        <li>La sécurité de son email et de ses accès</li>
+      </ul>
+
+      <h2>6. Limites de responsabilité</h2>
+      <p>CongoSwap ne peut être tenu responsable de :</p>
+      <ul>
+        <li>La perte de fonds due à une adresse wallet incorrecte fournie par l'utilisateur</li>
+        <li>Les fluctuations du marché crypto entre la soumission et le traitement</li>
+        <li>Les retards liés aux réseaux blockchain</li>
+        <li>Les pannes techniques des opérateurs Mobile Money</li>
+      </ul>
+
+      <h2>7. Délais et annulations</h2>
+      <p>Une fois une transaction soumise et le paiement effectué, elle ne peut être annulée que sur décision de CongoSwap. En cas de refus de notre part, le remboursement sera effectué dans les 24 heures.</p>
+
+      <h2>8. Modification des conditions</h2>
+      <p>CongoSwap se réserve le droit de modifier ces conditions à tout moment. Les modifications prennent effet dès leur publication sur ce site.</p>
+
+      <h2>9. Contact</h2>
+      <p>Pour toute question relative aux présentes conditions, contactez-nous sur Telegram ou WhatsApp au +242 06 114 9792.</p>
+    </div>
+
+    <!-- PRIVACY -->
+    <div class="legal-content" id="tab-privacy">
+      <div class="legal-date">Dernière mise à jour : Mars 2026</div>
+
+      <h2>1. Données collectées</h2>
+      <p>Dans le cadre de notre service, nous collectons les données suivantes :</p>
+      <ul>
+        <li>Adresse email</li>
+        <li>Numéro de téléphone Mobile Money</li>
+        <li>Adresse(s) wallet cryptomonnaie</li>
+        <li>Captures d'écran de transactions</li>
+        <li>Historique des transactions effectuées sur notre plateforme</li>
+      </ul>
+
+      <h2>2. Utilisation des données</h2>
+      <p>Vos données sont utilisées exclusivement pour :</p>
+      <ul>
+        <li>Traiter vos demandes de transaction</li>
+        <li>Vous envoyer des confirmations et notifications par email</li>
+        <li>Prévenir la fraude et assurer la sécurité du service</li>
+        <li>Améliorer notre service</li>
+      </ul>
+
+      <h2>3. Partage des données</h2>
+      <p>CongoSwap ne vend, ne loue et ne partage pas vos données personnelles avec des tiers, sauf obligation légale des autorités compétentes de la République du Congo.</p>
+
+      <h2>4. Conservation des données</h2>
+      <p>Vos données sont conservées pendant une durée de 2 ans à compter de votre dernière transaction. Vous pouvez demander la suppression de vos données en nous contactant directement.</p>
+
+      <h2>5. Sécurité</h2>
+      <p>Nous utilisons des mesures de sécurité adaptées pour protéger vos données, notamment le chiffrement des connexions (HTTPS) et une base de données sécurisée. Aucun mot de passe n'est stocké en clair.</p>
+
+      <h2>6. Vos droits</h2>
+      <p>Vous disposez des droits suivants concernant vos données :</p>
+      <ul>
+        <li>Droit d'accès à vos données</li>
+        <li>Droit de rectification des données inexactes</li>
+        <li>Droit à la suppression de vos données</li>
+      </ul>
+      <p>Pour exercer ces droits, contactez-nous sur WhatsApp au +242 06 114 9792.</p>
+
+      <h2>7. Cookies</h2>
+      <p>CongoSwap utilise Google Analytics pour analyser le trafic de manière anonyme. Aucun cookie publicitaire n'est utilisé. Vous pouvez désactiver les cookies dans les paramètres de votre navigateur.</p>
+
+      <h2>8. Contact</h2>
+      <p>Pour toute question relative à la protection de vos données personnelles, contactez-nous par WhatsApp au +242 06 114 9792 ou via notre page Contact.</p>
+    </div>
+
+  </div>
+</div>
+<div id="footer-placeholder"></div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('nav-placeholder').innerHTML = buildNavHTML('');
+document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+
+function showTab(tab) {
+  document.querySelectorAll('.legal-tab').forEach(function(t, i) {
+    t.classList.toggle('active', (tab === 'cgu' && i === 0) || (tab === 'privacy' && i === 1));
+  });
+  document.getElementById('tab-cgu').classList.toggle('active', tab === 'cgu');
+  document.getElementById('tab-privacy').classList.toggle('active', tab === 'privacy');
+}
+</script>
+</body>
+</html>

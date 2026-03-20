@@ -251,6 +251,26 @@ app.get('/api/orders/:id', async (req, res) => {
   res.json({ id, type, status, crypto, amount_usd, amount_cfa, created_at });
 });
 
+// Historique transactions par email (client)
+app.get('/api/my-orders', async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.status(400).json({ error: 'Email requis' });
+  const orders = await dbConn.collection('orders')
+    .find({ email: email })
+    .sort({ created_at: -1 })
+    .toArray();
+  res.json({ orders });
+});
+
+// Stats parrainage
+app.get('/api/referral-stats', async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.json({ total: 0, validated: 0 });
+  const all       = await dbConn.collection('orders').find({ referrer: email }).toArray();
+  const validated = all.filter(function(o) { return o.status === 'validated'; });
+  res.json({ total: all.length, validated: validated.length });
+});
+
 // Clients fideles (emails masques, min 2 commandes)
 app.get('/api/trusted-clients', async (req, res) => {
   try {
@@ -321,6 +341,82 @@ app.delete('/api/admin/orders/:id', authRequired, async (req, res) => {
 app.get('/api/admin/stats', authRequired, async (req, res) => {
   const stats = await db.getStats();
   res.json(stats);
+});
+
+// Analytics
+app.get('/api/admin/analytics', authRequired, async (req, res) => {
+  try {
+    const col    = dbConn.collection('orders');
+    const orders = await col.find({}).toArray();
+
+    // Par type
+    const by_type = { buy: 0, sell: 0, exchange: 0 };
+    orders.forEach(function(o) { if (by_type[o.type] !== undefined) by_type[o.type]++; });
+
+    // Par crypto
+    const cryptoCount = {};
+    orders.forEach(function(o) {
+      const name = o.crypto || o.exchange_from;
+      if (name) cryptoCount[name] = (cryptoCount[name] || 0) + 1;
+    });
+    const by_crypto = Object.entries(cryptoCount)
+      .map(function(e) { return { name: e[0], count: e[1] }; })
+      .sort(function(a, b) { return b.count - a.count; });
+
+    // Top clients
+    const clientCount = {};
+    orders.forEach(function(o) { if (o.email) clientCount[o.email] = (clientCount[o.email] || 0) + 1; });
+    const top_clients = Object.entries(clientCount)
+      .map(function(e) { return { email: e[0], count: e[1] }; })
+      .sort(function(a, b) { return b.count - a.count; })
+      .slice(0, 10);
+
+    // Par jour (7 derniers jours)
+    const days = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      days[d.toLocaleDateString('fr-FR')] = 0;
+    }
+    orders.forEach(function(o) {
+      const d = new Date(o.created_at).toLocaleDateString('fr-FR');
+      if (days[d] !== undefined) days[d]++;
+    });
+    const by_day = Object.entries(days).map(function(e) { return { date: e[0], count: e[1] }; });
+
+    res.json({ by_type, by_crypto, top_clients, by_day });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Taux — lecture
+app.get('/api/admin/rates', authRequired, async (req, res) => {
+  try {
+    const doc = await dbConn.collection('config').findOne({ key: 'rates' });
+    if (doc) res.json(doc.value);
+    else res.json({ buy: 630, sell: 575, exchange: 2 });
+  } catch(e) { res.json({ buy: 630, sell: 575, exchange: 2 }); }
+});
+
+// Taux — mise a jour
+app.post('/api/admin/rates', authRequired, async (req, res) => {
+  try {
+    const { buy, sell, exchange } = req.body;
+    await dbConn.collection('config').updateOne(
+      { key: 'rates' },
+      { $set: { key: 'rates', value: { buy, sell, exchange } } },
+      { upsert: true }
+    );
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Taux publics (pour le frontend)
+app.get('/api/rates', async (req, res) => {
+  try {
+    const doc = await dbConn.collection('config').findOne({ key: 'rates' });
+    if (doc) res.json(doc.value);
+    else res.json({ buy: 630, sell: 575, exchange: 2 });
+  } catch(e) { res.json({ buy: 630, sell: 575, exchange: 2 }); }
 });
 
 app.get('*', (req, res) => {

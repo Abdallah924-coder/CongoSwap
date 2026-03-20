@@ -3,10 +3,18 @@ const API = window.location.hostname === 'localhost'
   ? 'http://localhost:3000'
   : ''; // Same origin in production
 
-const RATES = {
-  buy:  630,   // Client achète à 630 FCFA / $1
-  sell: 575    // Client vend, reçoit 575 FCFA / $1
-};
+const RATES = { buy: 630, sell: 575, exchange: 2 };
+
+// Charger les taux depuis le backend
+(async function loadRatesFromAPI() {
+  try {
+    const r = await fetch((window.location.hostname === 'localhost' ? 'http://localhost:3000' : '') + '/api/rates');
+    const data = await r.json();
+    if (data.buy)  RATES.buy  = data.buy;
+    if (data.sell) RATES.sell = data.sell;
+    if (data.exchange) RATES.exchange = data.exchange;
+  } catch(e) {}
+})();
 
 const CRYPTOS = {
   BTC:  { name: 'Bitcoin',       symbol: 'BTC', icon: '₿',  coingecko: 'bitcoin' },
@@ -79,7 +87,9 @@ function buildNavHTML(activePage) {
       <li><a href="/buy.html" class="${activePage==='buy'?'active':''}">Acheter</a></li>
       <li><a href="/sell.html" class="${activePage==='sell'?'active':''}">Vendre</a></li>
       <li><a href="/exchange.html" class="${activePage==='exchange'?'active':''}">Échanger</a></li>
-      <li><a href="/contact.html" class="${activePage==='contact'?'active':''}">Contact & FAQ</a></li>
+      <li><a href="/parrainage.html" class="${activePage==='parrainage'?'active':''}">Parrainage</a></li>
+      <li><a href="/historique.html" class="${activePage==='historique'?'active':''}">Mes transactions</a></li>
+      <li><a href="/contact.html" class="${activePage==='contact'?'active':''}">Contact</a></li>
       <li><a href="/buy.html" class="nav-cta btn">Commencer</a></li>
     </ul>
     <button class="hamburger" id="hamburger" aria-label="Menu">
@@ -91,6 +101,8 @@ function buildNavHTML(activePage) {
     <a href="/buy.html" class="${activePage==='buy'?'active':''}">💸 Acheter des cryptos</a>
     <a href="/sell.html" class="${activePage==='sell'?'active':''}">💰 Vendre mes cryptos</a>
     <a href="/exchange.html" class="${activePage==='exchange'?'active':''}">🔄 Échanger</a>
+    <a href="/parrainage.html" class="${activePage==='parrainage'?'active':''}">🎁 Parrainage</a>
+    <a href="/historique.html" class="${activePage==='historique'?'active':''}">📋 Mes transactions</a>
     <a href="/contact.html" class="${activePage==='contact'?'active':''}">💬 Contact & FAQ</a>
     <a href="/buy.html" class="nav-drawer-cta">Commencer maintenant</a>
   </div>`;
@@ -99,9 +111,14 @@ function buildNavHTML(activePage) {
 function buildFooterHTML() {
   return `
   <footer>
-    <a class="logo" href="index.html">Congo<span>Swap</span></a>
+    <a class="logo" href="/">Congo<span>Swap</span></a>
     <p>© ${new Date().getFullYear()} CongoSwap · République du Congo</p>
     <p>Les prix sont indicatifs et mis à jour en temps réel.</p>
+    <p style="margin-top:8px;font-size:.78rem;">
+      <a href="/legal.html" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Conditions d'utilisation</a>·
+      <a href="/legal.html?tab=privacy" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Confidentialité</a>·
+      <a href="/contact.html" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Contact</a>
+    </p>
   </footer>`;
 }
 

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon_192.png">
+  <title>CongoSwap — Parrainage</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .parr-layout { max-width:680px; margin:0 auto; padding:100px 24px 80px; }
+    .parr-card { background:var(--dark3); border:1px solid var(--border); padding:32px; margin-bottom:16px; }
+    .parr-hero { text-align:center; background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.03)); border:1px solid var(--gold-dim); padding:40px 32px; margin-bottom:24px; }
+    .parr-bonus { font-family:'Syne',sans-serif; font-weight:800; font-size:3rem; color:var(--gold); }
+    .ref-display { font-family:monospace; background:var(--dark); border:1px solid var(--gold-dim); padding:14px 20px; font-size:1rem; color:var(--gold); letter-spacing:.1em; word-break:break-all; margin:12px 0; }
+    .step-list { list-style:none; display:flex; flex-direction:column; gap:14px; margin-top:16px; }
+    .step-list li { display:flex; gap:14px; align-items:flex-start; font-size:.9rem; color:var(--text-dim); }
+    .step-num { background:var(--gold); color:var(--dark); font-family:'Syne',sans-serif; font-weight:800; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:.85rem; }
+    .stats-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:2px; margin-top:16px; }
+    .stat-box { background:var(--dark); padding:20px; text-align:center; }
+    .stat-num { font-family:'Syne',sans-serif; font-weight:800; font-size:1.6rem; color:var(--gold); }
+    .stat-lbl { font-size:.74rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.07em; margin-top:4px; }
+    @media(max-width:480px) {
+      .stats-row { grid-template-columns:1fr; }
+      .parr-bonus { font-size:2.2rem; }
+    }
+  </style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page">
+  <div class="parr-layout">
+
+    <!-- HERO -->
+    <div class="parr-hero">
+      <span class="section-tag">Programme de parrainage</span>
+      <div class="parr-bonus">$1 offert</div>
+      <p style="color:var(--text-dim);margin:8px 0 0;">par ami parrainé qui effectue sa première transaction</p>
+    </div>
+
+    <!-- GENERATEUR CODE -->
+    <div class="parr-card">
+      <h2 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:8px;">Votre lien de parrainage</h2>
+      <p style="color:var(--text-dim);font-size:.88rem;margin-bottom:16px;">Entrez votre email pour générer votre lien personnel.</p>
+      <div class="form-group">
+        <label>Votre email CongoSwap</label>
+        <input type="email" id="ref-email" placeholder="vous@exemple.com"/>
+      </div>
+      <button class="btn btn-gold btn-full" onclick="generateRef()">Générer mon lien</button>
+      <div id="ref-result" style="display:none;margin-top:20px;">
+        <div style="font-size:.8rem;color:var(--text-dim);margin-bottom:6px;">VOTRE LIEN DE PARRAINAGE</div>
+        <div class="ref-display" id="ref-link">--</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline" style="font-size:.8rem;" onclick="copyRef()">Copier le lien</button>
+          <button class="btn btn-outline" style="font-size:.8rem;background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.3);color:#25D366;" onclick="shareWhatsApp()">Partager WhatsApp</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMMENT CA MARCHE -->
+    <div class="parr-card">
+      <h2 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:16px;">Comment ça marche</h2>
+      <ul class="step-list">
+        <li><div class="step-num">1</div><span>Générez votre lien de parrainage unique avec votre email</span></li>
+        <li><div class="step-num">2</div><span>Partagez ce lien à vos amis sur WhatsApp, Telegram ou Facebook</span></li>
+        <li><div class="step-num">3</div><span>Votre ami clique sur votre lien et effectue sa première transaction sur CongoSwap</span></li>
+        <li><div class="step-num">4</div><span>Une fois sa transaction validée, vous recevez <strong style="color:var(--gold)">$1 de bonus</strong> sur votre prochaine transaction</span></li>
+      </ul>
+    </div>
+
+    <!-- STATS -->
+    <div class="parr-card" id="stats-card" style="display:none;">
+      <h2 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:16px;">Vos statistiques</h2>
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Filleuls</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-validated">0</div><div class="stat-lbl">Valides</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-bonus">$0</div><div class="stat-lbl">Bonus gagnes</div></div>
+      </div>
+    </div>
+
+    <!-- CONDITIONS -->
+    <div style="background:var(--dark2);border:1px solid var(--border);padding:20px;font-size:.82rem;color:var(--text-dim);">
+      <strong style="color:var(--text);">Conditions du programme</strong>
+      <ul style="margin-top:8px;padding-left:16px;line-height:1.8;">
+        <li>Le bonus est valable sur votre prochaine transaction uniquement</li>
+        <li>Le filleul doit effectuer une transaction d'au moins $10</li>
+        <li>Un email ne peut être parrainé qu'une seule fois</li>
+        <li>CongoSwap se réserve le droit de modifier ou d'arrêter ce programme</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+<div id="footer-placeholder"></div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('nav-placeholder').innerHTML = buildNavHTML('');
+document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+
+// Auto-fill depuis URL si ref existe
+const urlParams = new URLSearchParams(window.location.search);
+const refCode = urlParams.get('ref');
+if (refCode) {
+  sessionStorage.setItem('congoswap_ref', refCode);
+}
+
+function emailToCode(email) {
+  // Code simple basé sur l'email
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) {
+    hash = ((hash << 5) - hash) + email.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
+}
+
+function generateRef() {
+  const email = document.getElementById('ref-email').value.trim();
+  if (!email || !email.includes('@')) {
+    alert('Entrez un email valide.');
+    return;
+  }
+  const code = emailToCode(email);
+  const link = window.location.origin + '/?ref=' + code + '&from=' + encodeURIComponent(email);
+  document.getElementById('ref-link').textContent = link;
+  document.getElementById('ref-result').style.display = 'block';
+  document.getElementById('stats-card').style.display = 'block';
+  loadStats(email);
+}
+
+function copyRef() {
+  const link = document.getElementById('ref-link').textContent;
+  navigator.clipboard.writeText(link).then(function() { alert('Lien copie !'); });
+}
+
+function shareWhatsApp() {
+  const link = document.getElementById('ref-link').textContent;
+  const msg  = 'Salut ! J\'utilise CongoSwap pour echanger mes cryptos en FCFA au Congo. C\'est serieux et rapide. Utilise mon lien pour ta premiere transaction : ' + link;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+async function loadStats(email) {
+  try {
+    const r    = await fetch(API + '/api/referral-stats?email=' + encodeURIComponent(email));
+    const data = await r.json();
+    document.getElementById('stat-total').textContent     = data.total || 0;
+    document.getElementById('stat-validated').textContent = data.validated || 0;
+    document.getElementById('stat-bonus').textContent     = '$' + (data.validated || 0);
+  } catch(e) {}
+}
+
+// Stocker ref dans sessionStorage au chargement si present dans URL
+window.addEventListener('load', function() {
+  const ref = new URLSearchParams(window.location.search).get('ref');
+  if (ref) sessionStorage.setItem('congoswap_ref', ref);
+});
+</script>
+</body>
+</html>

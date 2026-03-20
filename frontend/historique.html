@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon_192.png">
+  <title>CongoSwap — Historique de mes transactions</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .histo-layout { max-width:780px; margin:0 auto; padding:100px 24px 80px; }
+    .search-card { background:var(--dark3); border:1px solid var(--border); padding:32px; margin-bottom:24px; }
+    .tx-item { background:var(--dark3); border:1px solid var(--border); padding:20px 24px; margin-bottom:2px; display:flex; justify-content:space-between; align-items:center; gap:16px; transition:background .2s; cursor:pointer; }
+    .tx-item:hover { background:var(--dark4); }
+    .tx-ref { font-family:monospace; color:var(--gold); font-size:.85rem; }
+    .tx-type { font-family:'Syne',sans-serif; font-weight:700; font-size:.9rem; }
+    .tx-amount { font-family:'Syne',sans-serif; font-weight:700; color:var(--gold); }
+    .tx-date { font-size:.78rem; color:var(--text-dim); }
+    .tx-right { text-align:right; }
+    .empty-state { text-align:center; padding:60px 20px; color:var(--text-dim); }
+    .empty-icon { font-size:3rem; margin-bottom:16px; }
+    @media(max-width:540px) {
+      .tx-item { flex-direction:column; align-items:flex-start; }
+      .tx-right { text-align:left; }
+    }
+  </style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page">
+  <div class="histo-layout">
+    <span class="section-tag">Espace client</span>
+    <h1 class="section-title" style="font-size:1.8rem;margin-bottom:8px;">Mes transactions</h1>
+    <p style="color:var(--text-dim);margin-bottom:32px;">Retrouvez l'historique de toutes vos transactions CongoSwap.</p>
+
+    <!-- RECHERCHE -->
+    <div class="search-card">
+      <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:16px;">Entrez votre email</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <input type="email" id="search-email" placeholder="vous@exemple.com" style="flex:1;min-width:200px;" onkeydown="if(event.key==='Enter')searchHistory()"/>
+        <button class="btn btn-gold" onclick="searchHistory()" id="search-btn">Rechercher</button>
+      </div>
+      <div id="search-alert" class="alert" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- RESULTATS -->
+    <div id="results" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-family:'Syne',sans-serif;font-weight:700;" id="results-title">--</div>
+        <div style="font-size:.78rem;color:var(--text-dim);" id="results-sub">--</div>
+      </div>
+
+      <!-- RESUME -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2px;margin-bottom:16px;" id="summary-row"></div>
+
+      <!-- LISTE -->
+      <div id="tx-list"></div>
+    </div>
+
+  </div>
+</div>
+<div id="footer-placeholder"></div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('nav-placeholder').innerHTML = buildNavHTML('');
+document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+
+// Pre-fill depuis URL
+const urlEmail = new URLSearchParams(window.location.search).get('email');
+if (urlEmail) { document.getElementById('search-email').value = urlEmail; searchHistory(); }
+
+async function searchHistory() {
+  const email = document.getElementById('search-email').value.trim();
+  const alert = document.getElementById('search-alert');
+  if (!email || !email.includes('@')) {
+    alert.className = 'alert error';
+    alert.textContent = 'Entrez un email valide.';
+    return;
+  }
+  alert.className = 'alert';
+  alert.textContent = '';
+  setLoading(document.getElementById('search-btn'), true);
+
+  try {
+    const r    = await fetch(API + '/api/my-orders?email=' + encodeURIComponent(email));
+    const data = await r.json();
+    renderHistory(data, email);
+  } catch(e) {
+    alert.className = 'alert error';
+    alert.textContent = 'Erreur de connexion. Réessayez.';
+  }
+  setLoading(document.getElementById('search-btn'), false);
+}
+
+function renderHistory(data, email) {
+  const orders = data.orders || [];
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results-title').textContent = orders.length + ' transaction(s) pour ' + email;
+
+  // Résumé stats
+  const validated = orders.filter(function(o) { return o.status === 'validated'; });
+  const pending   = orders.filter(function(o) { return o.status === 'pending'; });
+  const volume    = validated.reduce(function(s, o) { return s + (o.amount_cfa || 0); }, 0);
+  document.getElementById('summary-row').innerHTML =
+    '<div style="background:var(--dark3);border:1px solid var(--border);padding:16px;text-align:center;">' +
+      '<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:1.4rem;color:var(--gold);">' + orders.length + '</div>' +
+      '<div style="font-size:.74rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.07em;margin-top:4px;">Total</div></div>' +
+    '<div style="background:var(--dark3);border:1px solid var(--border);padding:16px;text-align:center;">' +
+      '<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:1.4rem;color:var(--green);">' + validated.length + '</div>' +
+      '<div style="font-size:.74rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.07em;margin-top:4px;">Validees</div></div>' +
+    '<div style="background:var(--dark3);border:1px solid var(--border);padding:16px;text-align:center;">' +
+      '<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:1.4rem;color:var(--gold);">' + new Intl.NumberFormat('fr-FR').format(volume) + '</div>' +
+      '<div style="font-size:.74rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.07em;margin-top:4px;">FCFA echanges</div></div>';
+
+  if (!orders.length) {
+    document.getElementById('tx-list').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">📭</div><p>Aucune transaction trouvee pour cet email.</p></div>';
+    return;
+  }
+
+  const typeLabel = function(t) { return t === 'buy' ? 'Achat' : t === 'sell' ? 'Vente' : 'Echange'; };
+  const statusBadge = function(s) {
+    if (s === 'validated') return '<span class="badge badge-validated">Validee</span>';
+    if (s === 'rejected')  return '<span class="badge badge-rejected">Refusee</span>';
+    return '<span class="badge badge-pending">En attente</span>';
+  };
+
+  document.getElementById('tx-list').innerHTML = orders.map(function(o) {
+    const date = new Date(o.created_at).toLocaleDateString('fr-FR') + ' ' +
+                 new Date(o.created_at).toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    return '<a href="/waiting.html?id=' + o.id + '" style="text-decoration:none;display:block;">' +
+      '<div class="tx-item">' +
+        '<div>' +
+          '<div class="tx-ref">#' + o.id.slice(0,8).toUpperCase() + '</div>' +
+          '<div class="tx-type" style="margin:4px 0;">' + typeLabel(o.type) + ' — ' + (o.crypto || o.exchange_from + ' → ' + o.exchange_to) + '</div>' +
+          '<div class="tx-date">' + date + '</div>' +
+        '</div>' +
+        '<div class="tx-right">' +
+          '<div class="tx-amount">' + (o.amount_usd ? '$' + o.amount_usd : 'Echange') + '</div>' +
+          '<div style="margin-top:6px;">' + statusBadge(o.status) + '</div>' +
+        '</div>' +
+      '</div></a>';
+  }).join('');
+}
+</script>
+</body>
+</html>

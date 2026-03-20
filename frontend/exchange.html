@@ -77,6 +77,11 @@
           <input type="email" id="email" placeholder="vous@exemple.com" required/>
         </div>
 
+        <div class="form-group">
+          <label for="phone">Votre numéro de téléphone *</label>
+          <input type="tel" id="phone" placeholder="+242 06 XXX XX XX" required/>
+        </div>
+
         <!-- FROM -->
         <div style="background:var(--dark3);border:1px solid var(--border);padding:20px;margin-bottom:4px;">
           <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;">Vous envoyez</div>
@@ -235,6 +240,7 @@ document.getElementById('exchangeForm').addEventListener('submit', async functio
   const formData = new FormData();
   formData.append('type', 'exchange');
   formData.append('email', document.getElementById('email').value);
+  formData.append('phone', document.getElementById('phone').value);
   formData.append('crypto', fromSel.value);
   formData.append('exchange_from', fromSel.value);
   formData.append('exchange_to', toSel.value);
