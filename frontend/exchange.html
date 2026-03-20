@@ -254,6 +254,7 @@ document.getElementById('exchangeForm').addEventListener('submit', async functio
   formData.append('exchange_network_to', toNet.value);
   formData.append('amount_usd', amountEl.value);
   formData.append('wallet_address', document.getElementById('wallet_dest').value);
+  formData.append('referrer', getReferrer());
   setLoading(btn, true);
   try {
     const r = await fetch(`${API}/api/orders`, { method:'POST', body:formData });

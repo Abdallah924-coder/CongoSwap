@@ -445,6 +445,7 @@ async function viewOrder(id) {
         <div class="detail-field"><label>Adresse wallet</label><span>${order.wallet_address || '--'}</span></div>
         <div class="detail-field"><label>Statut</label><span class="badge badge-${order.status}">${order.status}</span></div>
         <div class="detail-field"><label>Date</label><span>${new Date(order.created_at).toLocaleString('fr-FR')}</span></div>
+        ${order.referrer ? `<div class="detail-field" style="grid-column:1/-1;border:1px solid var(--gold-dim);"><label style="color:var(--gold);">Parrainé par</label><span style="color:var(--gold);">${order.referrer}</span></div>` : ''}
       </div>
       ${order.screenshot_path ? `
         <div style="margin-top:16px;">

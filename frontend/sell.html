@@ -224,6 +224,7 @@ document.getElementById('sellForm').addEventListener('submit', async function(e)
   formData.append('amount_usd', usd);
   formData.append('amount_cfa', cfa);
   formData.append('wallet_address', document.getElementById('wallet_address').value);
+  formData.append('referrer', getReferrer());
   const sc = document.getElementById('screenshot').files[0];
   if (sc) formData.append('screenshot', sc);
 

@@ -193,6 +193,18 @@ function goToWaiting(orderId) {
   window.location.href = '/waiting.html?id=' + orderId;
 }
 
+// ─── PARRAINAGE ───────────────────────────────────────────────
+// Capturer le referrer depuis l'URL et le stocker
+(function captureReferrer() {
+  const params = new URLSearchParams(window.location.search);
+  const from   = params.get('from'); // email du parrain
+  if (from) sessionStorage.setItem('cs_referrer', from);
+})();
+
+function getReferrer() {
+  return sessionStorage.getItem('cs_referrer') || '';
+}
+
 // ─── KEEP-ALIVE (evite le cold start Render) ──────────────────
 setInterval(function() {
   fetch('/api/prices').catch(function(){});

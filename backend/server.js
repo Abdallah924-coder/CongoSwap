@@ -175,13 +175,14 @@ app.get('/api/prices', async (req, res) => {
 
 app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
   try {
-    const { type, email, crypto, network, amount_usd, amount_cfa, wallet_address, phone,
+    const { type, email, crypto, network, amount_usd, amount_cfa, wallet_address, phone, referrer,
             exchange_from, exchange_to, exchange_network_from, exchange_network_to } = req.body;
     const id = uuidv4();
     const now = new Date().toISOString();
     await db.insertOrder({
       id, type, email,
       phone: phone || '',
+      referrer: referrer || '',
       crypto: crypto || '', network: network || '',
       amount_usd: parseFloat(amount_usd) || 0,
       amount_cfa: parseFloat(amount_cfa) || 0,
@@ -236,6 +237,7 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
       '🌐 <b>Reseau :</b> ' + (network || exchange_network_from || 'N/A') + '\n' +
       '💵 <b>Montant :</b> ' + (amount_usd ? '$' + amount_usd + '  (~' + amount_cfa + ' FCFA)' : 'Echange') + '\n' +
       '🔗 <b>Wallet :</b> <code>' + (wallet_address || 'N/A') + '</code>\n' +
+      (referrer ? '🎁 <b>Parrain :</b> ' + referrer + '\n' : '') +
       sep + '\n' +
       '⏰ ' + new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Brazzaville' })
     ).catch(function(e) { console.error('Telegram erreur:', e.message); });
