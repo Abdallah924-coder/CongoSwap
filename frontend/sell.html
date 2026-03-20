@@ -213,7 +213,20 @@ document.getElementById('sellForm').addEventListener('submit', async function(e)
   const btn = document.getElementById('submitBtn');
   const alertEl = document.getElementById('formAlert');
   alertEl.className = 'alert';
+  alertEl.textContent = '';
+
   const usd = parseFloat(amountUsdEl.value);
+  if (!usd || usd <= 0) {
+    alertEl.className = 'alert error';
+    alertEl.textContent = 'Entrez un montant valide.';
+    return;
+  }
+  if (!cryptoSel.value) {
+    alertEl.className = 'alert error';
+    alertEl.textContent = 'Choisissez une crypto.';
+    return;
+  }
+
   const cfa = usd * RATES.sell;
   const formData = new FormData();
   formData.append('type', 'sell');
@@ -233,10 +246,10 @@ document.getElementById('sellForm').addEventListener('submit', async function(e)
     const r = await fetch(`${API}/api/orders`, { method:'POST', body:formData });
     const data = await r.json();
     if (data.success) goToWaiting(data.order_id);
-    else throw new Error(data.error);
-  } catch {
+    else throw new Error(data.error || 'Erreur serveur');
+  } catch(err) {
     alertEl.className = 'alert error';
-    alertEl.textContent = 'Erreur lors de l\'envoi. Contactez-nous sur Telegram.';
+    alertEl.textContent = 'Erreur : ' + (err.message || 'Contactez-nous sur Telegram.');
   }
   setLoading(btn, false);
 });
