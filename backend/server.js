@@ -87,21 +87,27 @@ const db = {
   }
 };
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: 'b58328001@smtp-brevo.com',
-    pass: process.env.BREVO_SMTP_KEY
-  }
-});
+// Email via Brevo HTTP API (SMTP bloque sur Render Free)
 
 async function sendEmail(to, subject, html) {
   if (!process.env.BREVO_SMTP_KEY) return;
   try {
-    await transporter.sendMail({ from: '"CongoSwap" <' + process.env.EMAIL_USER + '>', to, subject, html });
-    console.log('Email envoye a ' + to);
+    const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': process.env.BREVO_SMTP_KEY
+      },
+      body: JSON.stringify({
+        sender:  { name: 'CongoSwap', email: process.env.EMAIL_USER },
+        to:      [{ email: to }],
+        subject: subject,
+        htmlContent: html
+      })
+    });
+    const data = await r.json();
+    if (data.messageId) console.log('Email envoye a ' + to);
+    else console.error('Brevo erreur:', JSON.stringify(data));
   } catch (e) { console.error('Email erreur:', e.message); }
 }
 
@@ -130,13 +136,19 @@ function authRequired(req, res, next) {
 app.get('/api/test-email', async (req, res) => {
   if (!process.env.BREVO_SMTP_KEY) return res.json({ error: 'BREVO_SMTP_KEY non configure' });
   try {
-    await transporter.sendMail({
-      from: '"CongoSwap" <' + process.env.EMAIL_USER + '>',
-      to: process.env.EMAIL_USER,
-      subject: 'CongoSwap - Test email',
-      html: '<p>Email de test CongoSwap. Configuration correcte.</p>'
+    const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'api-key': process.env.BREVO_SMTP_KEY },
+      body: JSON.stringify({
+        sender: { name: 'CongoSwap', email: process.env.EMAIL_USER },
+        to: [{ email: process.env.EMAIL_USER }],
+        subject: 'CongoSwap - Test email',
+        htmlContent: '<p>Email de test CongoSwap. Configuration correcte.</p>'
+      })
     });
-    res.json({ success: true, message: 'Email envoye a ' + process.env.EMAIL_USER });
+    const data = await r.json();
+    if (data.messageId) res.json({ success: true, message: 'Email envoye' });
+    else res.json({ error: data });
   } catch (e) { res.json({ error: e.message }); }
 });
 
