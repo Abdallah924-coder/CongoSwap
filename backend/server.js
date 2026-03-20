@@ -88,18 +88,17 @@ const db = {
 };
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
+  host: 'smtp-relay.brevo.com',
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  tls: { rejectUnauthorized: false }
+    user: 'b58328001@smtp-brevo.com',
+    pass: process.env.BREVO_SMTP_KEY
+  }
 });
 
 async function sendEmail(to, subject, html) {
-  if (!process.env.EMAIL_USER) return;
+  if (!process.env.BREVO_SMTP_KEY) return;
   try {
     await transporter.sendMail({ from: '"CongoSwap" <' + process.env.EMAIL_USER + '>', to, subject, html });
     console.log('Email envoye a ' + to);
@@ -129,7 +128,7 @@ function authRequired(req, res, next) {
 }
 
 app.get('/api/test-email', async (req, res) => {
-  if (!process.env.EMAIL_USER) return res.json({ error: 'EMAIL_USER non configure' });
+  if (!process.env.BREVO_SMTP_KEY) return res.json({ error: 'BREVO_SMTP_KEY non configure' });
   try {
     await transporter.sendMail({
       from: '"CongoSwap" <' + process.env.EMAIL_USER + '>',
