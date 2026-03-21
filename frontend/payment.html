@@ -5,27 +5,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon_192.png">
-  <title>CongoSwap — Paiement International</title>
+  <title>CongoSwap — Abonnements Internationaux</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
     .pay-layout { display:grid; grid-template-columns:1fr 1fr; gap:2px; min-height:calc(100vh - 72px); }
-    .pay-left { background:var(--dark2); padding:60px 48px; border-right:1px solid var(--border); }
+    .pay-left  { background:var(--dark2); padding:60px 48px; border-right:1px solid var(--border); }
     .pay-right { padding:60px 48px; }
-    .services-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; margin:24px 0; }
-    .service-card { background:var(--dark3); border:1px solid var(--border); padding:16px 10px; text-align:center; cursor:pointer; transition:all .2s; border-radius:2px; }
-    .service-card:hover, .service-card.selected { border-color:var(--gold); background:rgba(201,168,76,.08); }
-    .service-card.selected { border-color:var(--gold); }
-    .service-icon { font-size:1.8rem; margin-bottom:6px; }
-    .service-name { font-size:.72rem; font-family:'Syne',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); }
-    .service-card.selected .service-name { color:var(--gold); }
-    .price-preview { background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.03)); border:1px solid var(--gold-dim); padding:20px 24px; margin:16px 0; display:none; }
-    .price-preview.visible { display:block; }
-    .price-fcfa { font-family:'Syne',sans-serif; font-weight:800; font-size:1.8rem; color:var(--gold); }
-    .rate-note { font-size:.78rem; color:var(--text-dim); margin-top:4px; }
+
+    /* SERVICE SELECTOR */
+    .services-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:8px; margin:20px 0; }
+    .svc { background:var(--dark3); border:2px solid var(--border); padding:14px 8px; text-align:center; cursor:pointer; transition:all .2s; }
+    .svc:hover { border-color:var(--gold-dim); }
+    .svc.active { border-color:var(--gold); background:rgba(201,168,76,.08); }
+    .svc-icon { font-size:1.6rem; margin-bottom:5px; }
+    .svc-name { font-size:.7rem; font-family:'Syne',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); }
+    .svc.active .svc-name { color:var(--gold); }
+
+    /* PLAN CARDS */
+    .plans-section { margin:20px 0; display:none; }
+    .plans-section.visible { display:block; }
+    .plan-card { background:var(--dark3); border:2px solid var(--border); padding:18px 20px; margin-bottom:8px; cursor:pointer; transition:all .2s; display:flex; justify-content:space-between; align-items:center; }
+    .plan-card:hover { border-color:var(--gold-dim); }
+    .plan-card.active { border-color:var(--gold); background:rgba(201,168,76,.06); }
+    .plan-name { font-family:'Syne',sans-serif; font-weight:700; font-size:.95rem; }
+    .plan-sub  { font-size:.78rem; color:var(--text-dim); margin-top:3px; }
+    .plan-price { text-align:right; }
+    .plan-usd  { font-size:.78rem; color:var(--text-dim); }
+    .plan-fcfa { font-family:'Syne',sans-serif; font-weight:800; color:var(--gold); font-size:1.05rem; }
+
+    /* DURATION */
+    .duration-row { display:flex; gap:8px; margin:12px 0; }
+    .dur-btn { flex:1; padding:10px; text-align:center; background:var(--dark3); border:2px solid var(--border); cursor:pointer; font-family:'Syne',sans-serif; font-size:.78rem; font-weight:700; text-transform:uppercase; transition:all .2s; }
+    .dur-btn:hover { border-color:var(--gold-dim); }
+    .dur-btn.active { border-color:var(--gold); background:rgba(201,168,76,.08); color:var(--gold); }
+
+    /* SUMMARY */
+    .order-summary { background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.03)); border:1px solid var(--gold-dim); padding:20px; margin:16px 0; display:none; }
+    .order-summary.visible { display:block; }
+    .summary-total { font-family:'Syne',sans-serif; font-weight:800; font-size:2rem; color:var(--gold); margin:8px 0; }
+    .summary-detail { font-size:.82rem; color:var(--text-dim); }
+
+    .payment-box { background:var(--dark3); border:1px solid var(--gold-dim); padding:20px; margin-bottom:20px; }
+
     @media(max-width:900px) {
       .pay-layout { grid-template-columns:1fr; }
       .pay-left { border-right:none; border-bottom:1px solid var(--border); padding:40px 20px; }
       .pay-right { padding:32px 20px; }
+    }
+    @media(max-width:480px) {
+      .duration-row { flex-wrap:wrap; }
+      .dur-btn { min-width:calc(50% - 4px); }
     }
   </style>
 </head>
@@ -37,45 +66,73 @@
     <!-- LEFT -->
     <div class="pay-left">
       <span class="section-tag">Nouveau service</span>
-      <h1 class="section-title">Paiement<br>International</h1>
-      <p style="color:var(--text-dim);margin-bottom:24px;">Payez n'importe quel service international en FCFA via Mobile Money. Netflix, Spotify, ChatGPT, domaines web et bien plus.</p>
+      <h1 class="section-title">Abonnements<br>Internationaux</h1>
+      <p style="color:var(--text-dim);margin-bottom:24px;">Accédez à Netflix, Spotify, ChatGPT et plus encore — payez en FCFA via Mobile Money, recevez vos accès en moins de 30 minutes.</p>
 
-      <div style="background:var(--dark3);border:1px solid var(--border);padding:20px;margin-bottom:20px;">
-        <div style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">Taux appliqué</div>
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--gold)">700 <span style="font-size:1rem;font-weight:400">FCFA / $</span></div>
-        <div style="font-size:.8rem;color:var(--text-dim);margin-top:4px;">Taux fixe · Pas de frais cachés</div>
+      <div style="background:var(--dark3);border:1px solid var(--border);padding:18px;margin-bottom:20px;">
+        <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Comment ca marche</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;margin:0;padding:0;">
+          <li style="display:flex;gap:12px;font-size:.86rem;color:var(--text-dim);"><span style="color:var(--gold);font-weight:700;flex-shrink:0;">1.</span>Choisissez votre service et votre plan</li>
+          <li style="display:flex;gap:12px;font-size:.86rem;color:var(--text-dim);"><span style="color:var(--gold);font-weight:700;flex-shrink:0;">2.</span>Payez en FCFA via MTN ou Airtel Money</li>
+          <li style="display:flex;gap:12px;font-size:.86rem;color:var(--text-dim);"><span style="color:var(--gold);font-weight:700;flex-shrink:0;">3.</span>Nous activons votre acces en moins de 30 min</li>
+          <li style="display:flex;gap:12px;font-size:.86rem;color:var(--text-dim);"><span style="color:var(--gold);font-weight:700;flex-shrink:0;">4.</span>Vous recevez les identifiants par email</li>
+        </ul>
       </div>
 
-      <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px;">Services disponibles</div>
-      <div class="services-grid" id="services-display">
-        <div class="service-card"><div class="service-icon">🎬</div><div class="service-name">Netflix</div></div>
-        <div class="service-card"><div class="service-icon">🎵</div><div class="service-name">Spotify</div></div>
-        <div class="service-card"><div class="service-icon">🤖</div><div class="service-name">ChatGPT</div></div>
-        <div class="service-card"><div class="service-icon">🛒</div><div class="service-name">Amazon</div></div>
-        <div class="service-card"><div class="service-icon">🌐</div><div class="service-name">Domaine</div></div>
-        <div class="service-card"><div class="service-icon">☁️</div><div class="service-name">Hebergement</div></div>
-        <div class="service-card"><div class="service-icon">🎮</div><div class="service-name">Steam</div></div>
-        <div class="service-card"><div class="service-icon">📱</div><div class="service-name">App Store</div></div>
-        <div class="service-card"><div class="service-icon">▶️</div><div class="service-name">YouTube</div></div>
-        <div class="service-card"><div class="service-icon">💼</div><div class="service-name">LinkedIn</div></div>
-        <div class="service-card"><div class="service-icon">🔧</div><div class="service-name">Autre</div></div>
+      <div style="background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.2);padding:16px;font-size:.84rem;color:var(--text-dim);">
+        <strong style="color:var(--green);">Acces garanti</strong><br>
+        Vous recevez un compte personnel cree et gere par CongoSwap. Acces immédiat, support disponible sur Telegram.
       </div>
-
-      <ul style="list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:20px;">
-        <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--gold);flex-shrink:0">1.</span>Choisissez le service et entrez le montant</li>
-        <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--gold);flex-shrink:0">2.</span>Payez en FCFA via Mobile Money</li>
-        <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--gold);flex-shrink:0">3.</span>Notre équipe effectue le paiement pour vous</li>
-        <li style="display:flex;gap:10px;font-size:.88rem;color:var(--text-dim)"><span style="color:var(--gold);flex-shrink:0">4.</span>Confirmation par email sous 30 minutes</li>
-      </ul>
     </div>
 
     <!-- RIGHT: Form -->
     <div class="pay-right">
-      <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.4rem;margin-bottom:28px;">Formulaire de paiement</h2>
-      <form id="payForm">
+      <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.4rem;margin-bottom:24px;">Commander un abonnement</h2>
 
+      <!-- SERVICES -->
+      <div class="form-group">
+        <label>Choisissez le service *</label>
+        <div class="services-grid" id="svc-grid">
+          <div class="svc" data-svc="Netflix"><div class="svc-icon">🎬</div><div class="svc-name">Netflix</div></div>
+          <div class="svc" data-svc="Spotify"><div class="svc-icon">🎵</div><div class="svc-name">Spotify</div></div>
+          <div class="svc" data-svc="ChatGPT"><div class="svc-icon">🤖</div><div class="svc-name">ChatGPT</div></div>
+          <div class="svc" data-svc="YouTube"><div class="svc-icon">▶️</div><div class="svc-name">YouTube</div></div>
+          <div class="svc" data-svc="Amazon"><div class="svc-icon">🛒</div><div class="svc-name">Amazon</div></div>
+          <div class="svc" data-svc="LinkedIn"><div class="svc-icon">💼</div><div class="svc-name">LinkedIn</div></div>
+          <div class="svc" data-svc="Steam"><div class="svc-icon">🎮</div><div class="svc-name">Steam</div></div>
+          <div class="svc" data-svc="Canva"><div class="svc-icon">🎨</div><div class="svc-name">Canva</div></div>
+        </div>
+      </div>
+
+      <!-- PLANS (dynamique selon service) -->
+      <div class="plans-section" id="plans-section">
+        <label style="font-size:.8rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:block;">Choisissez votre plan *</label>
+        <div id="plans-list"></div>
+      </div>
+
+      <!-- DUREE -->
+      <div class="plans-section" id="duration-section">
+        <label style="font-size:.8rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:block;">Duree de l'abonnement *</label>
+        <div class="duration-row">
+          <div class="dur-btn active" data-months="1">1 mois</div>
+          <div class="dur-btn" data-months="3">3 mois<br><span style="color:var(--gold);font-size:.7rem;">-5%</span></div>
+          <div class="dur-btn" data-months="6">6 mois<br><span style="color:var(--gold);font-size:.7rem;">-10%</span></div>
+          <div class="dur-btn" data-months="12">12 mois<br><span style="color:var(--gold);font-size:.7rem;">-15%</span></div>
+        </div>
+      </div>
+
+      <!-- RESUME COMMANDE -->
+      <div class="order-summary" id="order-summary">
+        <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Recapitulatif</div>
+        <div style="font-size:.9rem;color:var(--text-dim);" id="summary-desc">--</div>
+        <div class="summary-total" id="summary-fcfa">--</div>
+        <div class="summary-detail" id="summary-usd">--</div>
+      </div>
+
+      <!-- FORM FIELDS -->
+      <form id="payForm" style="margin-top:16px;">
         <div class="form-group">
-          <label for="pay-email">Votre adresse email *</label>
+          <label for="pay-email">Votre adresse email * <span style="color:var(--text-dim);font-size:.78rem;">(pour recevoir vos accès)</span></label>
           <input type="email" id="pay-email" placeholder="vous@exemple.com" required/>
         </div>
 
@@ -85,57 +142,20 @@
         </div>
 
         <div class="form-group">
-          <label for="pay-service">Service à payer *</label>
-          <select id="pay-service" required>
-            <option value="">Choisir un service...</option>
-            <option>Netflix</option>
-            <option>Spotify</option>
-            <option>ChatGPT Plus</option>
-            <option>Amazon</option>
-            <option>Nom de domaine</option>
-            <option>Hebergement web</option>
-            <option>Steam</option>
-            <option>App Store / Google Play</option>
-            <option>YouTube Premium</option>
-            <option>LinkedIn Premium</option>
-            <option>Autre service</option>
-          </select>
+          <label for="pay-note">Note (optionnel)</label>
+          <textarea id="pay-note" placeholder="Ex: premiere fois, besoin d'aide pour la configuration..." style="width:100%;background:var(--dark2);border:1px solid var(--border);color:var(--text);padding:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;resize:vertical;min-height:60px;"></textarea>
         </div>
 
-        <div class="form-group">
-          <label for="pay-details">Détails du compte / email du compte *</label>
-          <input type="text" id="pay-details" placeholder="Ex: email@netflix.com ou identifiant du compte" required/>
-        </div>
-
-        <div class="form-group">
-          <label for="pay-amount">Montant en USD ($) * <span style="color:var(--text-dim);font-size:.8rem;">— minimum $3</span></label>
-          <input type="number" id="pay-amount" placeholder="Min. $3" min="3" step="0.01" required/>
-        </div>
-
-        <!-- Prix FCFA preview -->
-        <div class="price-preview" id="price-preview">
-          <div style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;">Vous payez en FCFA</div>
-          <div class="price-fcfa" id="price-fcfa">--</div>
-          <div class="rate-note">Taux fixe · 700 FCFA / $1</div>
-        </div>
-
-        <div class="form-group">
-          <label for="pay-note">Note ou instructions (optionnel)</label>
-          <textarea id="pay-note" placeholder="Ex: renouvellement 1 mois, plan Premium..." style="width:100%;background:var(--dark2);border:1px solid var(--border);color:var(--text);padding:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;resize:vertical;min-height:70px;"></textarea>
-        </div>
-
-        <!-- Payment info box -->
-        <div style="background:var(--dark3);border:1px solid var(--gold-dim);padding:20px;margin-bottom:20px;" id="payment-box">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px;color:var(--gold);">Paiement Mobile Money</div>
-          <div style="font-size:.82rem;color:var(--text-dim);margin-bottom:10px;">Envoyez le montant FCFA au numéro suivant :</div>
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:4px;">+242 06 668 94 48</div>
+        <!-- PAIEMENT BOX -->
+        <div class="payment-box">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:10px;color:var(--gold);">Paiement Mobile Money</div>
+          <div style="font-size:.82rem;color:var(--text-dim);margin-bottom:8px;">Envoyez le montant au numero suivant apres soumission :</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:4px;">+242 06 114 9792</div>
           <div style="font-size:.8rem;color:var(--text-dim);">Michy Magellan DEVOUE LI-MBOUITY · MTN / Airtel Money</div>
         </div>
 
-        <button type="submit" class="btn btn-gold btn-full" id="paySubmitBtn">
-          Envoyer ma demande de paiement
-        </button>
-        <div id="payAlert" class="alert"></div>
+        <button type="submit" class="btn btn-gold btn-full" id="paySubmitBtn">Commander mon abonnement</button>
+        <div id="payAlert" class="alert" style="margin-top:12px;"></div>
       </form>
     </div>
   </div>
@@ -147,18 +167,123 @@
 document.getElementById('nav-placeholder').innerHTML = buildNavHTML('payment');
 document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
 
-const RATE_PAYMENT = 700;
+const RATE = 700;
 
-document.getElementById('pay-amount').addEventListener('input', function() {
-  const usd = parseFloat(this.value) || 0;
-  const preview = document.getElementById('price-preview');
-  if (usd >= 3) {
-    document.getElementById('price-fcfa').textContent = new Intl.NumberFormat('fr-FR').format(Math.round(usd * RATE_PAYMENT)) + ' FCFA';
-    preview.classList.add('visible');
-  } else {
-    preview.classList.remove('visible');
-  }
+// Plans par service (prix en $ par mois)
+const PLANS = {
+  Netflix: [
+    { name: 'Standard',      sub: 'HD · 2 ecrans',           price: 7  },
+    { name: 'Standard HD',   sub: 'Full HD · 2 ecrans',      price: 13 },
+    { name: 'Premium 4K',    sub: '4K Ultra HD · 4 ecrans',  price: 22 },
+  ],
+  Spotify: [
+    { name: 'Premium Solo',    sub: '1 compte · Hors ligne',          price: 11 },
+    { name: 'Premium Duo',     sub: '2 comptes · Couple',             price: 15 },
+    { name: 'Premium Famille', sub: 'Jusqu\'a 6 comptes',             price: 17 },
+  ],
+  ChatGPT: [
+    { name: 'ChatGPT Plus',  sub: 'GPT-4o · Acces prioritaire',   price: 20 },
+    { name: 'ChatGPT Pro',   sub: 'Usage illimite · o1 Pro',       price: 200 },
+  ],
+  YouTube: [
+    { name: 'Premium Solo',    sub: 'Sans pub · YouTube Music',      price: 14 },
+    { name: 'Premium Famille', sub: '6 membres · Sans pub',          price: 23 },
+  ],
+  Amazon: [
+    { name: 'Prime Mensuel',  sub: 'Livraison + Prime Video',       price: 15 },
+    { name: 'Prime Video',    sub: 'Streaming uniquement',           price: 9  },
+  ],
+  LinkedIn: [
+    { name: 'Career',    sub: 'Recherche d\'emploi',    price: 40 },
+    { name: 'Business',  sub: 'Developpement reseau',   price: 60 },
+  ],
+  Steam: [
+    { name: 'Recharge $5',   sub: 'Solde portefeuille Steam', price: 5  },
+    { name: 'Recharge $10',  sub: 'Solde portefeuille Steam', price: 10 },
+    { name: 'Recharge $20',  sub: 'Solde portefeuille Steam', price: 20 },
+    { name: 'Recharge $50',  sub: 'Solde portefeuille Steam', price: 50 },
+  ],
+  Canva: [
+    { name: 'Pro Solo',    sub: 'Toutes les fonctions premium', price: 15 },
+    { name: 'Pro Equipe',  sub: 'Jusqu\'a 5 membres',           price: 30 },
+  ],
+};
+
+let selectedService = '';
+let selectedPlan    = null;
+let selectedMonths  = 1;
+
+// Service click
+document.querySelectorAll('.svc').forEach(function(el) {
+  el.addEventListener('click', function() {
+    document.querySelectorAll('.svc').forEach(function(s) { s.classList.remove('active'); });
+    this.classList.add('active');
+    selectedService = this.dataset.svc;
+    selectedPlan    = null;
+    renderPlans(selectedService);
+    updateSummary();
+  });
 });
+
+// Duration click
+document.querySelectorAll('.dur-btn').forEach(function(el) {
+  el.addEventListener('click', function() {
+    document.querySelectorAll('.dur-btn').forEach(function(d) { d.classList.remove('active'); });
+    this.classList.add('active');
+    selectedMonths = parseInt(this.dataset.months);
+    updateSummary();
+  });
+});
+
+function renderPlans(service) {
+  const plans = PLANS[service] || [];
+  const list  = document.getElementById('plans-list');
+  list.innerHTML = plans.map(function(p, i) {
+    const fcfa = new Intl.NumberFormat('fr-FR').format(Math.round(p.price * RATE));
+    return '<div class="plan-card" data-index="' + i + '">' +
+      '<div><div class="plan-name">' + p.name + '</div><div class="plan-sub">' + p.sub + '</div></div>' +
+      '<div class="plan-price"><div class="plan-usd">$' + p.price + '/mois</div><div class="plan-fcfa">' + fcfa + ' FCFA</div></div>' +
+      '</div>';
+  }).join('');
+
+  list.querySelectorAll('.plan-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      list.querySelectorAll('.plan-card').forEach(function(c) { c.classList.remove('active'); });
+      this.classList.add('active');
+      selectedPlan = PLANS[service][parseInt(this.dataset.index)];
+      updateSummary();
+    });
+  });
+
+  document.getElementById('plans-section').classList.add('visible');
+  document.getElementById('duration-section').classList.add('visible');
+}
+
+function getDiscount(months) {
+  if (months >= 12) return 0.15;
+  if (months >= 6)  return 0.10;
+  if (months >= 3)  return 0.05;
+  return 0;
+}
+
+function updateSummary() {
+  const summary = document.getElementById('order-summary');
+  if (!selectedService || !selectedPlan) { summary.classList.remove('visible'); return; }
+
+  const baseUsd    = selectedPlan.price * selectedMonths;
+  const discount   = getDiscount(selectedMonths);
+  const finalUsd   = baseUsd * (1 - discount);
+  const finalFcfa  = Math.round(finalUsd * RATE);
+  const fcfaStr    = new Intl.NumberFormat('fr-FR').format(finalFcfa);
+  const monthLabel = selectedMonths === 1 ? '1 mois' : selectedMonths + ' mois';
+
+  document.getElementById('summary-desc').textContent =
+    selectedService + ' · ' + selectedPlan.name + ' · ' + monthLabel +
+    (discount > 0 ? ' (-' + (discount*100) + '%)' : '');
+  document.getElementById('summary-fcfa').textContent = fcfaStr + ' FCFA';
+  document.getElementById('summary-usd').textContent  = '$' + finalUsd.toFixed(2) + ' au taux de 700 FCFA/$';
+  summary.classList.add('visible');
+}
 
 document.getElementById('payForm').addEventListener('submit', async function(e) {
   e.preventDefault();
@@ -167,33 +292,29 @@ document.getElementById('payForm').addEventListener('submit', async function(e) 
   alertEl.className = 'alert';
   alertEl.textContent = '';
 
-  const usd = parseFloat(document.getElementById('pay-amount').value);
-  if (!usd || usd < 3) {
-    alertEl.className = 'alert error';
-    alertEl.textContent = 'Le montant minimum est de $3.';
-    return;
-  }
+  if (!selectedService) { alertEl.className = 'alert error'; alertEl.textContent = 'Choisissez un service.'; return; }
+  if (!selectedPlan)    { alertEl.className = 'alert error'; alertEl.textContent = 'Choisissez un plan.'; return; }
+
+  const finalUsd  = selectedPlan.price * selectedMonths * (1 - getDiscount(selectedMonths));
+  const finalFcfa = Math.round(finalUsd * RATE);
 
   const formData = new FormData();
-  formData.append('type',         'payment');
-  formData.append('email',        document.getElementById('pay-email').value);
-  formData.append('phone',        document.getElementById('pay-phone').value);
-  formData.append('service',      document.getElementById('pay-service').value);
-  formData.append('details',      document.getElementById('pay-details').value);
-  formData.append('amount_usd',   usd);
-  formData.append('amount_cfa',   Math.round(usd * RATE_PAYMENT));
-  formData.append('note',         document.getElementById('pay-note').value);
-  formData.append('referrer',     getReferrer());
+  formData.append('type',       'payment');
+  formData.append('email',      document.getElementById('pay-email').value);
+  formData.append('phone',      document.getElementById('pay-phone').value);
+  formData.append('service',    selectedService + ' ' + selectedPlan.name);
+  formData.append('details',    selectedMonths + ' mois');
+  formData.append('amount_usd', finalUsd.toFixed(2));
+  formData.append('amount_cfa', finalFcfa);
+  formData.append('note',       document.getElementById('pay-note').value);
+  formData.append('referrer',   getReferrer());
 
   setLoading(btn, true);
   try {
     const r    = await fetch(API + '/api/payments', { method: 'POST', body: formData });
     const data = await r.json();
-    if (data.success) {
-      goToWaiting(data.order_id);
-    } else {
-      throw new Error(data.error || 'Erreur serveur');
-    }
+    if (data.success) goToWaiting(data.order_id);
+    else throw new Error(data.error || 'Erreur serveur');
   } catch(err) {
     alertEl.className = 'alert error';
     alertEl.textContent = 'Erreur : ' + (err.message || 'Contactez-nous sur Telegram.');
