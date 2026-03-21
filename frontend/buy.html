@@ -63,7 +63,7 @@
         <div class="payment-row">
           <span class="payment-label">Numéro Mobile Money</span>
           <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <span class="payment-val big">+242 06 668 94 48</span>
+            <span class="payment-val big">+242 06 932 59 37</span>
             <button class="copy-btn" onclick="copyText('+242 06 932 59 37')">Copier</button>
           </span>
         </div>
@@ -113,8 +113,8 @@
         </div>
 
         <div class="form-group">
-          <label for="amount_usd">Montant souhaité en USD ($) *</label>
-          <input type="number" id="amount_usd" name="amount_usd" placeholder="Ex: 50" min="1" step="0.01" required/>
+          <label for="amount_usd">Montant souhaité en USD ($) * <span style="color:var(--text-dim);font-size:.8rem;">— minimum $5</span></label>
+          <input type="number" id="amount_usd" name="amount_usd" placeholder="Min. $5" min="5" step="0.01" required/>
         </div>
 
         <!-- CFA preview -->
@@ -213,7 +213,11 @@ document.getElementById('buyForm').addEventListener('submit', async function(e) 
   alertEl.className = 'alert';
 
   const usd = parseFloat(amountUsdEl.value);
-  if (!usd || usd <= 0) return;
+  if (!usd || usd < 5) {
+    document.getElementById('formAlert').className = 'alert error';
+    document.getElementById('formAlert').textContent = 'Le montant minimum est de $5.';
+    return;
+  }
   const cfa = usd * RATES.buy;
 
   const formData = new FormData();
