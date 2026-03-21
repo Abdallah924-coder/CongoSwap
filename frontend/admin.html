@@ -374,7 +374,7 @@ function renderOrders(orders, containerId) {
     container.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-dim)">Aucune commande trouvée.</div>';
     return;
   }
-  const typeLabel = t => t === 'buy' ? '💸 Achat' : t === 'sell' ? '💰 Vente' : '🔄 Échange';
+  const typeLabel = t => t === 'buy' ? '💸 Achat' : t === 'sell' ? '💰 Vente' : t === 'payment' ? '💳 Paiement' : '🔄 Échange';
   container.innerHTML = `
     <div style="overflow-x:auto">
     <table class="orders-table">
@@ -437,9 +437,10 @@ async function viewOrder(id) {
       <div class="detail-grid">
         <div class="detail-field"><label>Email</label><span>${order.email}</span></div>
         <div class="detail-field"><label>Telephone</label><span style="color:var(--gold);font-size:1rem;">${order.phone || '--'}</span></div>
-        <div class="detail-field"><label>Type</label><span>${order.type}</span></div>
-        <div class="detail-field"><label>Crypto</label><span>${order.type === 'exchange' ? (order.exchange_from + ' → ' + order.exchange_to) : (order.crypto || '--')}</span></div>
-        <div class="detail-field"><label>Réseau</label><span>${order.type === 'exchange' ? ((order.exchange_network_from || '--') + ' → ' + (order.exchange_network_to || '--')) : (order.network || '--')}</span></div>
+        <div class="detail-field"><label>Type</label><span>${order.type === 'payment' ? 'Paiement international' : order.type}</span></div>
+        <div class="detail-field"><label>Crypto / Service</label><span>${order.type === 'payment' ? (order.service || '--') : order.type === 'exchange' ? (order.exchange_from + ' → ' + order.exchange_to) : (order.crypto || '--')}</span></div>
+        <div class="detail-field"><label>Réseau / Compte</label><span>${order.type === 'payment' ? (order.details || '--') : order.type === 'exchange' ? ((order.exchange_network_from || '--') + ' → ' + (order.exchange_network_to || '--')) : (order.network || '--')}</span></div>
+        ${order.type === 'payment' && order.note ? `<div class="detail-field" style="grid-column:1/-1;"><label>Note client</label><span>${order.note}</span></div>` : ''}
         <div class="detail-field"><label>Montant USD</label><span>${order.amount_usd ? '$' + order.amount_usd : '--'}</span></div>
         <div class="detail-field"><label>Montant FCFA</label><span>${order.amount_cfa ? new Intl.NumberFormat('fr-FR').format(order.amount_cfa) + ' FCFA' : '--'}</span></div>
         <div class="detail-field"><label>Adresse wallet</label><span>${order.wallet_address || '--'}</span></div>

@@ -253,6 +253,77 @@ app.get('/api/orders/:id', async (req, res) => {
   res.json({ id, type, status, crypto, amount_usd, amount_cfa, created_at });
 });
 
+// ─── PAIEMENTS INTERNATIONAUX ─────────────────────────────────
+app.post('/api/payments', async (req, res) => {
+  try {
+    const { email, phone, service, details, amount_usd, amount_cfa, note, referrer } = req.body;
+    const id  = uuidv4();
+    const now = new Date().toISOString();
+
+    await dbConn.collection('orders').insertOne({
+      id, type: 'payment', email,
+      phone:      phone || '',
+      service:    service || '',
+      details:    details || '',
+      amount_usd: parseFloat(amount_usd) || 0,
+      amount_cfa: parseFloat(amount_cfa) || 0,
+      note:       note || '',
+      referrer:   referrer || '',
+      status: 'pending', notes: '',
+      created_at: now, updated_at: now
+    });
+
+    // Email client
+    sendEmail(email, 'CongoSwap - Demande de paiement reçue #' + id.slice(0,8).toUpperCase(),
+      '<div style="font-family:sans-serif;max-width:500px;margin:auto;background:#0d0d0d;color:#f0ede6;padding:32px;border-radius:8px;">' +
+      '<h2 style="color:#C9A84C;">CongoSwap — Paiement International</h2>' +
+      '<p>Votre demande de paiement a bien ete recue.</p>' +
+      '<div style="background:#1c1c1c;padding:16px;border-radius:6px;margin:16px 0;">' +
+      '<p><strong>Reference :</strong> #' + id.slice(0,8).toUpperCase() + '</p>' +
+      '<p><strong>Service :</strong> ' + service + '</p>' +
+      '<p><strong>Montant :</strong> $' + amount_usd + ' = ' + amount_cfa + ' FCFA</p>' +
+      '</div>' +
+      '<p>Notre equipe effectuera le paiement dans les 30 minutes apres confirmation de votre paiement Mobile Money.</p>' +
+      '</div>'
+    ).catch(function(e) { console.error('Email erreur:', e.message); });
+
+    // Email admin
+    sendEmail(process.env.EMAIL_USER, 'CongoSwap - Nouveau paiement #' + id.slice(0,8).toUpperCase(),
+      '<div style="font-family:sans-serif;max-width:500px;margin:auto;background:#0d0d0d;color:#f0ede6;padding:32px;border-radius:8px;">' +
+      '<h2 style="color:#C9A84C;">Nouveau paiement international</h2>' +
+      '<div style="background:#1c1c1c;padding:16px;border-radius:6px;margin:16px 0;">' +
+      '<p><strong>Ref :</strong> #' + id.slice(0,8).toUpperCase() + '</p>' +
+      '<p><strong>Email :</strong> ' + email + '</p>' +
+      '<p><strong>Tel :</strong> ' + (phone || 'N/A') + '</p>' +
+      '<p><strong>Service :</strong> ' + service + '</p>' +
+      '<p><strong>Compte :</strong> ' + details + '</p>' +
+      '<p><strong>Montant :</strong> $' + amount_usd + ' = ' + amount_cfa + ' FCFA</p>' +
+      (note ? '<p><strong>Note :</strong> ' + note + '</p>' : '') +
+      '</div>' +
+      '<a href="https://congoswap.onrender.com/admin.html" style="background:#C9A84C;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;display:inline-block;">Voir dans l\'admin</a>' +
+      '</div>'
+    ).catch(function(e) { console.error('Email admin erreur:', e.message); });
+
+    // Telegram
+    sendTelegram(
+      '💳 <b>PAIEMENT INTERNATIONAL — CongoSwap</b>\n' +
+      '───────────────────\n' +
+      '🆔 <b>Ref :</b> <code>#' + id.slice(0,8).toUpperCase() + '</code>\n' +
+      '📧 <b>Email :</b> ' + email + '\n' +
+      '📱 <b>Tel :</b> ' + (phone || 'N/A') + '\n' +
+      '───────────────────\n' +
+      '🌐 <b>Service :</b> ' + service + '\n' +
+      '👤 <b>Compte :</b> ' + details + '\n' +
+      '💵 <b>Montant :</b> $' + amount_usd + '  (~' + amount_cfa + ' FCFA)\n' +
+      (note ? '📝 <b>Note :</b> ' + note + '\n' : '') +
+      '───────────────────\n' +
+      '⏰ ' + new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Brazzaville' })
+    ).catch(function(e) { console.error('Telegram erreur:', e.message); });
+
+    res.json({ success: true, order_id: id });
+  } catch(e) { console.error(e); res.status(500).json({ error: 'Erreur serveur' }); }
+});
+
 // Historique transactions par email (client)
 app.get('/api/my-orders', async (req, res) => {
   const email = req.query.email;

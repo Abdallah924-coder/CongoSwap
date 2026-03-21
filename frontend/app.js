@@ -104,6 +104,7 @@ function buildNavHTML(activePage) {
       <li><a href="/buy.html" class="${activePage==='buy'?'active':''}">Acheter</a></li>
       <li><a href="/sell.html" class="${activePage==='sell'?'active':''}">Vendre</a></li>
       <li><a href="/exchange.html" class="${activePage==='exchange'?'active':''}">Échanger</a></li>
+      <li><a href="/payment.html" class="${activePage==='payment'?'active':''}">Paiement intl.</a></li>
       <li><a href="/parrainage.html" class="${activePage==='parrainage'?'active':''}">Parrainage</a></li>
       <li><a href="/historique.html" class="${activePage==='historique'?'active':''}">Mes transactions</a></li>
       <li><a href="/contact.html" class="${activePage==='contact'?'active':''}">Contact</a></li>
@@ -118,6 +119,7 @@ function buildNavHTML(activePage) {
     <a href="/buy.html" class="${activePage==='buy'?'active':''}">💸 Acheter des cryptos</a>
     <a href="/sell.html" class="${activePage==='sell'?'active':''}">💰 Vendre mes cryptos</a>
     <a href="/exchange.html" class="${activePage==='exchange'?'active':''}">🔄 Échanger</a>
+    <a href="/payment.html" class="${activePage==='payment'?'active':''}">💳 Paiement international</a>
     <a href="/parrainage.html" class="${activePage==='parrainage'?'active':''}">🎁 Parrainage</a>
     <a href="/historique.html" class="${activePage==='historique'?'active':''}">📋 Mes transactions</a>
     <a href="/contact.html" class="${activePage==='contact'?'active':''}">💬 Contact & FAQ</a>
