@@ -4,8 +4,8 @@ const { MongoClient } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const fetch = require('node-fetch');
 
-const TOKEN    = process.env.TELEGRAM_BOT_TOKEN || '8771345270:AAErSyr35e7UCgb4apsr1nZz6jU7lr2j_kE';
-const ADMIN_ID = process.env.ADMIN_TELEGRAM_ID  || '7218101024';
+const TOKEN    = process.env.TELEGRAM_BOT_TOKEN;
+const ADMIN_ID = process.env.ADMIN_TELEGRAM_ID;
 const MONGO_URI = process.env.MONGODB_URI;
 
 const bot = new TelegramBot(TOKEN, { polling: true });
