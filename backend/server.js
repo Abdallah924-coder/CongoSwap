@@ -254,7 +254,7 @@ app.get('/api/orders/:id', async (req, res) => {
 });
 
 // ─── PAIEMENTS INTERNATIONAUX ─────────────────────────────────
-app.post('/api/payments', upload.none(), async (req, res) => {
+app.post('/api/payments', upload.single('screenshot'), async (req, res) => {
   try {
     const { email, phone, service, details, amount_usd, amount_cfa, note, referrer } = req.body;
     const id  = uuidv4();
@@ -269,6 +269,7 @@ app.post('/api/payments', upload.none(), async (req, res) => {
       amount_cfa: parseFloat(amount_cfa) || 0,
       note:       note || '',
       referrer:   referrer || '',
+      screenshot_path: req.file ? '/uploads/' + req.file.filename : null,
       status: 'pending', notes: '',
       created_at: now, updated_at: now
     });

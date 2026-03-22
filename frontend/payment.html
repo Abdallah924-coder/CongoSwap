@@ -146,6 +146,17 @@
           <textarea id="pay-note" placeholder="Ex: premiere fois, besoin d'aide pour la configuration..." style="width:100%;background:var(--dark2);border:1px solid var(--border);color:var(--text);padding:10px;font-family:'DM Sans',sans-serif;font-size:.88rem;resize:vertical;min-height:60px;"></textarea>
         </div>
 
+        <div class="form-group">
+          <label>Capture d'écran du paiement Mobile Money *</label>
+          <div style="border:2px dashed var(--border);padding:24px;text-align:center;cursor:pointer;transition:border-color .2s;" onclick="document.getElementById('pay-screenshot').click()" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="font-size:1.5rem;margin-bottom:6px;">📸</div>
+            <div style="font-size:.86rem;color:var(--text-dim);">Cliquez pour uploader la capture</div>
+            <div style="font-size:.76rem;color:var(--text-dim);margin-top:4px;">JPG, PNG · Max 5MB</div>
+            <input type="file" id="pay-screenshot" accept="image/*" style="display:none"/>
+            <img id="pay-preview" style="max-width:100%;max-height:160px;margin-top:12px;display:none;"/>
+          </div>
+        </div>
+
         <!-- PAIEMENT BOX -->
         <div class="payment-box">
           <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:10px;color:var(--gold);">Paiement Mobile Money</div>
@@ -285,6 +296,19 @@ function updateSummary() {
   summary.classList.add('visible');
 }
 
+// Screenshot preview
+document.getElementById('pay-screenshot').addEventListener('change', function() {
+  if (this.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = document.getElementById('pay-preview');
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(this.files[0]);
+  }
+});
+
 document.getElementById('payForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   const btn     = document.getElementById('paySubmitBtn');
@@ -308,6 +332,8 @@ document.getElementById('payForm').addEventListener('submit', async function(e) 
   formData.append('amount_cfa', finalFcfa);
   formData.append('note',       document.getElementById('pay-note').value);
   formData.append('referrer',   getReferrer());
+  const sc = document.getElementById('pay-screenshot').files[0];
+  if (sc) formData.append('screenshot', sc);
 
   setLoading(btn, true);
   try {
