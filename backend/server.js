@@ -3,13 +3,13 @@ const express    = require('express');
 const cors       = require('cors');
 const path       = require('path');
 const multer     = require('multer');
-const nodemailer = require('nodemailer');
 const fetch      = require('node-fetch');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt     = require('bcryptjs');
 const jwt        = require('jsonwebtoken');
 const fs         = require('fs');
 const { MongoClient } = require('mongodb');
+const { sendEmail, sendTelegram } = require('./utils.js');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -88,41 +88,7 @@ const db = {
 };
 
 // Email via Brevo HTTP API (SMTP bloque sur Render Free)
-
-async function sendEmail(to, subject, html) {
-  if (!process.env.BREVO_SMTP_KEY) return;
-  try {
-    const r = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'api-key': process.env.BREVO_SMTP_KEY
-      },
-      body: JSON.stringify({
-        sender:  { name: 'CongoSwap', email: process.env.EMAIL_USER },
-        to:      [{ email: to }],
-        subject: subject,
-        htmlContent: html
-      })
-    });
-    const data = await r.json();
-    if (data.messageId) console.log('Email envoye a ' + to);
-    else console.error('Brevo erreur:', JSON.stringify(data));
-  } catch (e) { console.error('Email erreur:', e.message); }
-}
-
-async function sendTelegram(text) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return;
-  try {
-    await fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' })
-    });
-  } catch (e) { console.error('Telegram error:', e.message); }
-}
+// sendEmail et sendTelegram importes depuis utils.js
 
 function authRequired(req, res, next) {
   const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
@@ -500,8 +466,18 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
+// ─── TELEGRAM WEBHOOK ─────────────────────────────────────────
+app.post('/webhook/telegram', (req, res) => {
+  if (global.telegramBot) {
+    global.telegramBot.processUpdate(req.body);
+  }
+  res.sendStatus(200);
+});
+
 connectDB().then(function() {
   app.listen(PORT, function() { console.log('CongoSwap backend running on port ' + PORT); });
   // Lancer le bot Telegram dans le même processus
   require('./bot.js');
 }).catch(function(e) { console.error('Erreur MongoDB:', e.message); process.exit(1); });
+
+module.exports = { sendEmail, sendTelegram };

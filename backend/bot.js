@@ -3,12 +3,22 @@ const TelegramBot = require('node-telegram-bot-api');
 const { MongoClient } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const fetch = require('node-fetch');
+const { sendEmail, sendTelegram } = require('./utils.js');
 
 const TOKEN    = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN_ID = process.env.ADMIN_TELEGRAM_ID;
 const MONGO_URI = process.env.MONGODB_URI;
 
-const bot = new TelegramBot(TOKEN, { polling: true });
+const bot = new TelegramBot(TOKEN, { polling: false });
+global.telegramBot = bot;
+
+// Set webhook
+const WEBHOOK_URL = 'https://congoswap.onrender.com/webhook/telegram';
+bot.setWebHook(WEBHOOK_URL).then(function() {
+  console.log('Webhook Telegram configure : ' + WEBHOOK_URL);
+}).catch(function(e) {
+  console.error('Erreur webhook:', e.message);
+});
 
 // ─── DB ───────────────────────────────────────────────────────
 let dbConn;
