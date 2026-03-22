@@ -59,24 +59,60 @@
 
       <!-- PAYMENT BOX — always visible -->
       <div class="payment-box visible" id="payment-box">
-        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:16px;color:var(--gold)">📱 Envoyez le paiement ici</div>
-        <div class="payment-row">
-          <span class="payment-label">Numéro Mobile Money</span>
-          <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <span class="payment-val big">+242 06 668 94 48</span>
-            <button class="copy-btn" onclick="copyText('+242 06 932 59 37')">Copier</button>
-          </span>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:14px;color:var(--gold)">Choisissez votre mode de paiement</div>
+
+        <!-- Tabs -->
+        <div style="display:flex;gap:2px;margin-bottom:16px;">
+          <button type="button" id="tab-momo" onclick="switchPayTab('momo')" style="flex:1;padding:10px;background:var(--gold);color:var(--dark);border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;cursor:pointer;letter-spacing:.05em;">
+            📱 Mobile Money
+          </button>
+          <button type="button" id="tab-binance" onclick="switchPayTab('binance')" style="flex:1;padding:10px;background:var(--dark3);color:var(--text-dim);border:1px solid var(--border);font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;cursor:pointer;letter-spacing:.05em;">
+            🟡 Binance Pay
+          </button>
         </div>
-        <div class="payment-row">
-          <span class="payment-label">Nom du receveur</span>
-          <span class="payment-val" style="font-size:.88rem;text-align:right;">Michy Magellan<br>DEVOUE LI-MBOUITY</span>
+
+        <!-- Mobile Money -->
+        <div id="pay-momo">
+          <div class="payment-row">
+            <span class="payment-label">Numéro Mobile Money</span>
+            <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="payment-val big">+242 06 932 59 37</span>
+              <button class="copy-btn" onclick="copyText('+242 06 932 59 37')">Copier</button>
+            </span>
+          </div>
+          <div class="payment-row">
+            <span class="payment-label">Nom du receveur</span>
+            <span class="payment-val" style="font-size:.88rem;text-align:right;">Michy Magellan<br>DEVOUE LI-MBOUITY</span>
+          </div>
+          <div class="payment-row">
+            <span class="payment-label">Montant à envoyer</span>
+            <span class="payment-val big" id="pay-cfa-amount" style="color:var(--gold)">Entrez un montant →</span>
+          </div>
+          <div style="margin-top:12px;background:rgba(201,168,76,.08);padding:12px;font-size:.82rem;color:var(--text-dim);">
+            ⚠️ Envoyez <strong>exactement</strong> ce montant. Joignez la capture d'écran dans le formulaire.
+          </div>
         </div>
-        <div class="payment-row">
-          <span class="payment-label">Montant à envoyer</span>
-          <span class="payment-val big" id="pay-cfa-amount" style="color:var(--gold)">Entrez un montant →</span>
-        </div>
-        <div style="margin-top:14px;background:rgba(201,168,76,.08);padding:12px;font-size:.82rem;color:var(--text-dim);">
-          ⚠️ Envoyez <strong>exactement</strong> ce montant. Joignez ensuite la capture d'écran de confirmation dans le formulaire.
+
+        <!-- Binance Pay -->
+        <div id="pay-binance" style="display:none;">
+          <div class="payment-row">
+            <span class="payment-label">ID Binance Pay</span>
+            <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="payment-val big" style="color:var(--gold)">849320766</span>
+              <button class="copy-btn" onclick="copyText('849320766')">Copier</button>
+            </span>
+          </div>
+          <div class="payment-row">
+            <span class="payment-label">Nom du compte</span>
+            <span class="payment-val" style="font-size:.88rem;">CongoSwap</span>
+          </div>
+          <div class="payment-row">
+            <span class="payment-label">Montant à envoyer</span>
+            <span class="payment-val big" id="pay-usd-amount" style="color:var(--gold)">Entrez un montant →</span>
+          </div>
+          <div style="margin-top:12px;background:rgba(240,185,11,.08);border:1px solid rgba(240,185,11,.2);padding:12px;font-size:.82rem;color:var(--text-dim);">
+            ⚠️ Envoyez en <strong>USDT ou BUSD</strong> uniquement via Binance Pay. Joignez la capture d'écran dans le formulaire.
+          </div>
         </div>
       </div>
 
@@ -125,12 +161,32 @@
         </div>
 
         <div class="form-group">
-          <label for="wallet_address">Votre adresse wallet (pour recevoir la crypto) *</label>
-          <input type="text" id="wallet_address" name="wallet_address" placeholder="Ex: 0x1a2b3c4d5e..." required/>
+          <label>Comment voulez-vous recevoir votre crypto ? *</label>
+          <div style="display:flex;gap:2px;margin-bottom:12px;">
+            <button type="button" id="tab-wallet" onclick="switchReceiveTab('wallet')" style="flex:1;padding:10px;background:var(--gold);color:var(--dark);border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;cursor:pointer;">
+              🔑 Adresse Wallet
+            </button>
+            <button type="button" id="tab-binance-recv" onclick="switchReceiveTab('binance')" style="flex:1;padding:10px;background:var(--dark3);color:var(--text-dim);border:1px solid var(--border);font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;cursor:pointer;">
+              🟡 Binance Pay
+            </button>
+          </div>
+
+          <!-- Adresse wallet -->
+          <div id="recv-wallet">
+            <input type="text" id="wallet_address" name="wallet_address" placeholder="Ex: 0x1a2b3c4d5e... ou TXy1234..." />
+          </div>
+
+          <!-- Binance Pay ID -->
+          <div id="recv-binance" style="display:none;">
+            <input type="text" id="binance_id" name="binance_id" placeholder="Votre ID Binance Pay (ex: 123456789)"/>
+            <div style="font-size:.78rem;color:var(--text-dim);margin-top:6px;">Entrez votre ID Binance Pay. Nous vous enverrons la crypto directement sur votre compte Binance.</div>
+          </div>
         </div>
 
+        <input type="hidden" id="receive_method" name="receive_method" value="wallet"/>
+
         <div class="form-group">
-          <label>Capture d'écran du paiement Mobile Money *</label>
+          <label>Capture d'écran du paiement *</label>
           <div class="upload-zone" id="upload-zone" onclick="document.getElementById('screenshot').click()">
             <div>📸 Cliquez pour uploader la capture d'écran</div>
             <div style="font-size:.8rem;color:var(--text-dim);margin-top:6px">JPG, PNG ou PDF · Max 5MB</div>
@@ -161,6 +217,20 @@ const cfaNoteEl = document.getElementById('cfa-note');
 const paymentBox = document.getElementById('payment-box');
 const payCfaEl = document.getElementById('pay-cfa-amount');
 
+// Switcher entre Wallet et Binance Pay (reception)
+function switchReceiveTab(tab) {
+  const isBinance = tab === 'binance';
+  document.getElementById('recv-wallet').style.display  = isBinance ? 'none' : 'block';
+  document.getElementById('recv-binance').style.display = isBinance ? 'block' : 'none';
+  document.getElementById('receive_method').value = isBinance ? 'binance_pay' : 'wallet';
+  document.getElementById('tab-wallet').style.background       = isBinance ? 'var(--dark3)' : 'var(--gold)';
+  document.getElementById('tab-wallet').style.color            = isBinance ? 'var(--text-dim)' : 'var(--dark)';
+  document.getElementById('tab-wallet').style.border           = isBinance ? '1px solid var(--border)' : 'none';
+  document.getElementById('tab-binance-recv').style.background = isBinance ? '#F0B90B' : 'var(--dark3)';
+  document.getElementById('tab-binance-recv').style.color      = isBinance ? '#000' : 'var(--text-dim)';
+  document.getElementById('tab-binance-recv').style.border     = isBinance ? 'none' : '1px solid var(--border)';
+}
+
 populateCryptoSelect(cryptoSel);
 
 cryptoSel.addEventListener('change', () => {
@@ -179,9 +249,14 @@ function updateCFA() {
     cfaNoteEl.textContent = `≈ ${cryptoAmount} ${cryptoSel.value || ''}  ·  Taux: ${RATES.buy} FCFA/$`;
     cfaPreview.classList.add('visible');
     payCfaEl.textContent = formatCFA(cfa);
+    // Binance Pay — montant en USD
+    const payUsdEl = document.getElementById('pay-usd-amount');
+    if (payUsdEl) payUsdEl.textContent = '$' + usd + ' USDT';
   } else {
     cfaPreview.classList.remove('visible');
     payCfaEl.textContent = 'Entrez un montant →';
+    const payUsdEl = document.getElementById('pay-usd-amount');
+    if (payUsdEl) payUsdEl.textContent = 'Entrez un montant →';
   }
 }
 
@@ -227,7 +302,21 @@ document.getElementById('buyForm').addEventListener('submit', async function(e) 
   formData.append('network', networkSel.value);
   formData.append('amount_usd', usd);
   formData.append('amount_cfa', cfa);
-  formData.append('wallet_address', document.getElementById('wallet_address').value);
+  const receiveMethod = document.getElementById('receive_method').value;
+  const walletVal     = receiveMethod === 'binance_pay'
+    ? 'Binance Pay ID: ' + (document.getElementById('binance_id').value || '')
+    : document.getElementById('wallet_address').value;
+
+  if (!walletVal || walletVal.length < 5) {
+    document.getElementById('formAlert').className = 'alert error';
+    document.getElementById('formAlert').textContent = receiveMethod === 'binance_pay'
+      ? 'Entrez votre ID Binance Pay.'
+      : 'Entrez votre adresse wallet.';
+    return;
+  }
+
+  formData.append('wallet_address', walletVal);
+  formData.append('receive_method', receiveMethod);
   formData.append('referrer', getReferrer());
   const screenshotFile = document.getElementById('screenshot').files[0];
   if (screenshotFile) formData.append('screenshot', screenshotFile);

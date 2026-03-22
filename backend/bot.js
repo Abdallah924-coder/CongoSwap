@@ -11,14 +11,7 @@ const MONGO_URI = process.env.MONGODB_URI;
 
 const bot = new TelegramBot(TOKEN, { polling: false });
 global.telegramBot = bot;
-
-// Set webhook
-const WEBHOOK_URL = 'https://congoswap.onrender.com/webhook/telegram';
-bot.setWebHook(WEBHOOK_URL).then(function() {
-  console.log('Webhook Telegram configure : ' + WEBHOOK_URL);
-}).catch(function(e) {
-  console.error('Erreur webhook:', e.message);
-});
+console.log('CongoSwap Bot demarre...');
 
 // ─── DB ───────────────────────────────────────────────────────
 let dbConn;

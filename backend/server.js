@@ -468,16 +468,24 @@ app.get('*', (req, res) => {
 
 // ─── TELEGRAM WEBHOOK ─────────────────────────────────────────
 app.post('/webhook/telegram', (req, res) => {
+  res.sendStatus(200);
   if (global.telegramBot) {
     global.telegramBot.processUpdate(req.body);
   }
-  res.sendStatus(200);
 });
 
 connectDB().then(function() {
-  app.listen(PORT, function() { console.log('CongoSwap backend running on port ' + PORT); });
-  // Lancer le bot Telegram dans le même processus
+  // Charger le bot AVANT de démarrer le serveur
   require('./bot.js');
+  app.listen(PORT, function() {
+    console.log('CongoSwap backend running on port ' + PORT);
+    // Configurer le webhook après démarrage
+    if (global.telegramBot) {
+      global.telegramBot.setWebHook('https://congoswap.onrender.com/webhook/telegram')
+        .then(function() { console.log('Webhook Telegram configure'); })
+        .catch(function(e) { console.error('Webhook erreur:', e.message); });
+    }
+  });
 }).catch(function(e) { console.error('Erreur MongoDB:', e.message); process.exit(1); });
 
 module.exports = { sendEmail, sendTelegram };
