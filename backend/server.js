@@ -502,4 +502,6 @@ app.get('*', (req, res) => {
 
 connectDB().then(function() {
   app.listen(PORT, function() { console.log('CongoSwap backend running on port ' + PORT); });
+  // Lancer le bot Telegram dans le même processus
+  require('./bot.js');
 }).catch(function(e) { console.error('Erreur MongoDB:', e.message); process.exit(1); });
