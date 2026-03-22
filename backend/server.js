@@ -254,7 +254,7 @@ app.get('/api/orders/:id', async (req, res) => {
 });
 
 // ─── PAIEMENTS INTERNATIONAUX ─────────────────────────────────
-app.post('/api/payments', async (req, res) => {
+app.post('/api/payments', upload.none(), async (req, res) => {
   try {
     const { email, phone, service, details, amount_usd, amount_cfa, note, referrer } = req.body;
     const id  = uuidv4();
@@ -274,16 +274,19 @@ app.post('/api/payments', async (req, res) => {
     });
 
     // Email client
-    sendEmail(email, 'CongoSwap - Demande de paiement reçue #' + id.slice(0,8).toUpperCase(),
+    sendEmail(email, 'CongoSwap - Abonnement recu #' + id.slice(0,8).toUpperCase(),
       '<div style="font-family:sans-serif;max-width:500px;margin:auto;background:#0d0d0d;color:#f0ede6;padding:32px;border-radius:8px;">' +
-      '<h2 style="color:#C9A84C;">CongoSwap — Paiement International</h2>' +
-      '<p>Votre demande de paiement a bien ete recue.</p>' +
+      '<h2 style="color:#C9A84C;">CongoSwap — Abonnements Internationaux</h2>' +
+      '<p>Bonjour,</p>' +
+      '<p>Votre commande d\'abonnement a bien ete recue.</p>' +
       '<div style="background:#1c1c1c;padding:16px;border-radius:6px;margin:16px 0;">' +
       '<p><strong>Reference :</strong> #' + id.slice(0,8).toUpperCase() + '</p>' +
       '<p><strong>Service :</strong> ' + service + '</p>' +
+      '<p><strong>Duree :</strong> ' + details + '</p>' +
       '<p><strong>Montant :</strong> $' + amount_usd + ' = ' + amount_cfa + ' FCFA</p>' +
       '</div>' +
-      '<p>Notre equipe effectuera le paiement dans les 30 minutes apres confirmation de votre paiement Mobile Money.</p>' +
+      '<p>Apres confirmation de votre paiement Mobile Money, vous recevrez vos identifiants de connexion par email dans les <strong>30 minutes</strong>.</p>' +
+      '<p style="color:#8a8578;font-size:.85rem;">Merci de faire confiance a CongoSwap.</p>' +
       '</div>'
     ).catch(function(e) { console.error('Email erreur:', e.message); });
 
