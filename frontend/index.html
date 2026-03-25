@@ -5,9 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon_192.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#C9A84C">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CongoSwap">
+  <link rel="apple-touch-icon" href="/assets/logo_icon_512.png">
   <title>CongoSwap — Échange Crypto & CFA en République du Congo</title>
   <meta name="description" content="Achetez, vendez et échangez vos cryptomonnaies contre des FCFA en toute sécurité en République du Congo. Service local de confiance."/>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#C9A84C">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CongoSwap">
+  <link rel="apple-touch-icon" href="/assets/favicon_192.png">
   <style>
     /* HERO */
     .hero { min-height:100vh; display:flex; align-items:center; padding:120px 48px 80px; position:relative; overflow:hidden; }
@@ -119,6 +133,9 @@
         <a href="buy.html" class="btn btn-gold">Acheter des cryptos</a>
         <a href="sell.html" class="btn btn-outline">Vendre mes cryptos</a>
         <a href="exchange.html" class="btn btn-outline">Échanger</a>
+        <button id="pwa-install-btn" style="display:none;background:rgba(201,168,76,.15);border:1px solid var(--gold-dim);color:var(--gold);padding:12px 24px;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">
+          📲 Installer l'application
+        </button>
       </div>
       <div class="hero-stats anim-up-3">
         <div class="stat"><div class="stat-num">630</div><div class="stat-label">FCFA / $ à l'achat</div></div>
