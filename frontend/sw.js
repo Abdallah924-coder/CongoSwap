@@ -1,21 +1,13 @@
-const CACHE_NAME = 'congoswap-v1';
+const CACHE_NAME = 'congoswap-v2';
+
+// Seules les images sont cachées
 const STATIC_ASSETS = [
-  '/',
-  '/buy.html',
-  '/sell.html',
-  '/exchange.html',
-  '/payment.html',
-  '/contact.html',
-  '/historique.html',
-  '/parrainage.html',
-  '/legal.html',
-  '/style.css',
-  '/app.js',
   '/assets/favicon_192.png',
   '/assets/logo_icon_512.png',
+  '/assets/favicon_32.png',
 ];
 
-// Installation — mise en cache des assets statiques
+// Installation
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
@@ -25,52 +17,42 @@ self.addEventListener('install', function(event) {
   self.skipWaiting();
 });
 
-// Activation — suppression des anciens caches
+// Activation — vider tous les anciens caches
 self.addEventListener('activate', function(event) {
   event.waitUntil(
     caches.keys().then(function(keys) {
       return Promise.all(
-        keys.filter(function(key) { return key !== CACHE_NAME; })
-            .map(function(key) { return caches.delete(key); })
+        keys.map(function(key) { return caches.delete(key); })
       );
     })
   );
   self.clients.claim();
 });
 
-// Fetch — strategie Network First pour les API, Cache First pour les assets
+// Fetch — Network First pour tout
 self.addEventListener('fetch', function(event) {
   const url = new URL(event.request.url);
 
-  // API — toujours le reseau
-  if (url.pathname.startsWith('/api/')) {
+  // Images uniquement en cache
+  if (url.pathname.startsWith('/assets/') && event.request.method === 'GET') {
     event.respondWith(
-      fetch(event.request).catch(function() {
-        return new Response(JSON.stringify({ error: 'Pas de connexion' }), {
-          headers: { 'Content-Type': 'application/json' }
+      caches.match(event.request).then(function(cached) {
+        return cached || fetch(event.request).then(function(response) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(function(cache) {
+            cache.put(event.request, clone);
+          });
+          return response;
         });
       })
     );
     return;
   }
 
-  // Assets statiques — cache d'abord, reseau en fallback
+  // Tout le reste — toujours le réseau
   event.respondWith(
-    caches.match(event.request).then(function(cached) {
-      if (cached) return cached;
-      return fetch(event.request).then(function(response) {
-        // Mettre en cache les nouvelles ressources
-        if (response.ok && event.request.method === 'GET') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(function(cache) {
-            cache.put(event.request, clone);
-          });
-        }
-        return response;
-      }).catch(function() {
-        // Page hors ligne
-        return caches.match('/');
-      });
+    fetch(event.request).catch(function() {
+      return caches.match(event.request);
     })
   );
 });
