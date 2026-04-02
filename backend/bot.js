@@ -11,7 +11,6 @@ const MONGO_URI = process.env.MONGODB_URI;
 
 const bot = new TelegramBot(TOKEN, { polling: false });
 global.telegramBot = bot;
-console.log('CongoSwap Bot demarre...');
 
 // ─── DB ───────────────────────────────────────────────────────
 let dbConn;
@@ -19,7 +18,7 @@ async function initBot() {
   const client = new MongoClient(MONGO_URI);
   await client.connect();
   dbConn = client.db('congoswap');
-  console.log('CongoSwap Bot demarre...');
+  console.log('CongoSwap Bot connecte');
 }
 
 // ─── CONFIG ───────────────────────────────────────────────────
@@ -165,6 +164,8 @@ function confirmKeyboard() {
 
 // ─── WELCOME ─────────────────────────────────────────────────
 async function sendWelcome(chatId, name) {
+  const isAdmin = String(chatId) === String(ADMIN_ID);
+  const adminInfo = isAdmin ? '' : '\n\n🔑 Votre Chat ID : `' + chatId + '`';
   const text =
     '🇨🇬 *Bienvenue sur CongoSwap Bot* !\n\n' +
     'Bonjour ' + (name || '') + ' 👋\n\n' +
@@ -173,7 +174,7 @@ async function sendWelcome(chatId, name) {
     '• Achat crypto : 630 FCFA/$\n' +
     '• Vente crypto : 575 FCFA/$\n' +
     '• Abonnements : 700 FCFA/$\n\n' +
-    'Que voulez-vous faire ?';
+    'Que voulez-vous faire ?' + adminInfo;
   await bot.sendMessage(chatId, text, { parse_mode: 'Markdown', ...MAIN_MENU });
 }
 
@@ -670,6 +671,8 @@ bot.on('photo', async (msg) => {
 });
 
 // ─── START ───────────────────────────────────────────────────
-initBot().catch(function(e) {
+initBot().then(function() {
+  console.log('CongoSwap Bot demarre');
+}).catch(function(e) {
   console.error('Erreur bot:', e.message);
 });
