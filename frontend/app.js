@@ -323,8 +323,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // ─── CHAT EN DIRECT ───────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-  (function initChat() {
+(function initChat() {
   const CHAT_MESSAGES = [
     { from: 'bot', text: 'Bonjour ! Comment puis-je vous aider ? 👋', delay: 500 },
   ];
@@ -413,8 +412,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }, 800);
   };
-  })();
-});
+})();
 
 // ─── KEEP-ALIVE (evite le cold start Render) ──────────────────
 setInterval(function() {
@@ -435,11 +433,11 @@ setInterval(function() {
 })();
 
 // ─── HAMBURGER INIT ───────────────────────────────────────────
-// S'exécute après que buildNavHTML a injecté le DOM
-document.addEventListener('DOMContentLoaded', function() {
-  const btn = document.getElementById('hamburger');
-  const drawer = document.getElementById('nav-drawer');
-  if (!btn || !drawer) return;
+function initHamburger() {
+  var btn    = document.getElementById('hamburger');
+  var drawer = document.getElementById('nav-drawer');
+  if (!btn || !drawer || btn._init) return;
+  btn._init = true;
   btn.addEventListener('click', function(e) {
     e.stopPropagation();
     btn.classList.toggle('open');
@@ -451,4 +449,11 @@ document.addEventListener('DOMContentLoaded', function() {
       drawer.classList.remove('open');
     }
   });
-});
+}
+// Pour les pages qui n'appellent pas initHamburger() explicitement
+(function() {
+  var obs = new MutationObserver(function() {
+    if (document.getElementById('hamburger')) { obs.disconnect(); initHamburger(); }
+  });
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+})();
