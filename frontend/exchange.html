@@ -183,7 +183,6 @@
 <script>
 document.getElementById('nav-placeholder').innerHTML = buildNavHTML('exchange');
 document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
-initHamburger();
 
 const fromSel = document.getElementById('exchange_from');
 const toSel = document.getElementById('exchange_to');
@@ -193,18 +192,6 @@ const amountEl = document.getElementById('amount_from');
 
 populateCryptoSelect(fromSel);
 populateCryptoSelect(toSel);
-// Initialiser les réseaux dès le chargement
-if (fromSel.options.length > 1) {
-  fromSel.selectedIndex = 1;
-  populateNetworkSelect(fromNet, fromSel.value);
-  if (fromNet.options.length > 1) fromNet.selectedIndex = 1;
-  updateExchangeWallet();
-}
-if (toSel.options.length > 1) {
-  toSel.selectedIndex = 2; // Crypto différente par défaut
-  populateNetworkSelect(toNet, toSel.value);
-  if (toNet.options.length > 1) toNet.selectedIndex = 1;
-}
 
 fromSel.addEventListener('change', () => {
   populateNetworkSelect(fromNet, fromSel.value);

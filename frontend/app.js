@@ -432,12 +432,17 @@ setInterval(function() {
   gtag('config', 'G-5858WNL8PS');
 })();
 
-// ─── HAMBURGER INIT ───────────────────────────────────────────
-// Appelé explicitement après chaque injection de buildNavHTML()
+// ─── HAMBURGER INIT ─── voir bloc corrigé en bas du fichier ──
+
+// ─── HAMBURGER INIT (corrigé) ─────────────────────────────────
+// MutationObserver : s'attache dès que #hamburger apparaît dans le DOM,
+// que ce soit avant ou après l'injection via buildNavHTML().
+// Remplace le DOMContentLoaded qui était trop tôt.
 function initHamburger() {
-  const btn = document.getElementById('hamburger');
-  const drawer = document.getElementById('nav-drawer');
-  if (!btn || !drawer) return;
+  var btn    = document.getElementById('hamburger');
+  var drawer = document.getElementById('nav-drawer');
+  if (!btn || !drawer || btn._hambInit) return;
+  btn._hambInit = true;
   btn.addEventListener('click', function(e) {
     e.stopPropagation();
     btn.classList.toggle('open');
@@ -450,3 +455,11 @@ function initHamburger() {
     }
   });
 }
+
+(function() {
+  if (document.getElementById('hamburger')) { initHamburger(); return; }
+  var obs = new MutationObserver(function() {
+    if (document.getElementById('hamburger')) { obs.disconnect(); initHamburger(); }
+  });
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+})();
