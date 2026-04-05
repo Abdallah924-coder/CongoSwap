@@ -433,8 +433,8 @@ setInterval(function() {
 })();
 
 // ─── HAMBURGER INIT ───────────────────────────────────────────
-// S'exécute après que buildNavHTML a injecté le DOM
-document.addEventListener('DOMContentLoaded', function() {
+// Appelé explicitement après chaque injection de buildNavHTML()
+function initHamburger() {
   const btn = document.getElementById('hamburger');
   const drawer = document.getElementById('nav-drawer');
   if (!btn || !drawer) return;
@@ -449,4 +449,4 @@ document.addEventListener('DOMContentLoaded', function() {
       drawer.classList.remove('open');
     }
   });
-});
+}

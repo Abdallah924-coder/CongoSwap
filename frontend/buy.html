@@ -216,6 +216,7 @@
 <script>
 document.getElementById('nav-placeholder').innerHTML = buildNavHTML('buy');
 document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+initHamburger();
 
 const cryptoSel = document.getElementById('crypto');
 const networkSel = document.getElementById('network');
@@ -241,6 +242,11 @@ function switchReceiveTab(tab) {
 }
 
 populateCryptoSelect(cryptoSel);
+// Initialiser le réseau dès que la crypto par défaut est sélectionnée
+if (cryptoSel.options.length > 1) {
+  cryptoSel.selectedIndex = 1;
+  populateNetworkSelect(networkSel, cryptoSel.value);
+}
 
 cryptoSel.addEventListener('change', () => {
   populateNetworkSelect(networkSel, cryptoSel.value);

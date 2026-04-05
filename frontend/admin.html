@@ -597,6 +597,8 @@ async function checkNewOrders() {
   } catch(e) {}
 }
 setInterval(checkNewOrders, 30000);
+
+async function loadAnalytics() {
   const container = document.getElementById('analytics-content');
   try {
     const r    = await authFetch(`${API}/api/admin/analytics`);
