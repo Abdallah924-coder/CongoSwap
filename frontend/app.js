@@ -323,7 +323,8 @@ if ('serviceWorker' in navigator) {
 }
 
 // ─── CHAT EN DIRECT ───────────────────────────────────────────
-(function initChat() {
+document.addEventListener('DOMContentLoaded', function() {
+  (function initChat() {
   const CHAT_MESSAGES = [
     { from: 'bot', text: 'Bonjour ! Comment puis-je vous aider ? 👋', delay: 500 },
   ];
@@ -412,7 +413,8 @@ if ('serviceWorker' in navigator) {
       }
     }, 800);
   };
-})();
+  })();
+});
 
 // ─── KEEP-ALIVE (evite le cold start Render) ──────────────────
 setInterval(function() {
@@ -432,17 +434,12 @@ setInterval(function() {
   gtag('config', 'G-5858WNL8PS');
 })();
 
-// ─── HAMBURGER INIT ─── voir bloc corrigé en bas du fichier ──
-
-// ─── HAMBURGER INIT (corrigé) ─────────────────────────────────
-// MutationObserver : s'attache dès que #hamburger apparaît dans le DOM,
-// que ce soit avant ou après l'injection via buildNavHTML().
-// Remplace le DOMContentLoaded qui était trop tôt.
-function initHamburger() {
-  var btn    = document.getElementById('hamburger');
-  var drawer = document.getElementById('nav-drawer');
-  if (!btn || !drawer || btn._hambInit) return;
-  btn._hambInit = true;
+// ─── HAMBURGER INIT ───────────────────────────────────────────
+// S'exécute après que buildNavHTML a injecté le DOM
+document.addEventListener('DOMContentLoaded', function() {
+  const btn = document.getElementById('hamburger');
+  const drawer = document.getElementById('nav-drawer');
+  if (!btn || !drawer) return;
   btn.addEventListener('click', function(e) {
     e.stopPropagation();
     btn.classList.toggle('open');
@@ -454,12 +451,4 @@ function initHamburger() {
       drawer.classList.remove('open');
     }
   });
-}
-
-(function() {
-  if (document.getElementById('hamburger')) { initHamburger(); return; }
-  var obs = new MutationObserver(function() {
-    if (document.getElementById('hamburger')) { obs.disconnect(); initHamburger(); }
-  });
-  obs.observe(document.documentElement, { childList: true, subtree: true });
-})();
+});
