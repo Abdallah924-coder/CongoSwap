@@ -136,7 +136,8 @@ function buildFooterHTML() {
     <p style="margin-top:8px;font-size:.78rem;">
       <a href="/legal.html" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Conditions d'utilisation</a>·
       <a href="/legal.html?tab=privacy" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Confidentialité</a>·
-      <a href="/contact.html" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Contact</a>
+      <a href="/contact.html" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Contact</a>·
+      <a href="/status.html" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Statut</a>
     </p>
   </footer>`;
 }
@@ -195,6 +196,63 @@ function goToWaiting(orderId) {
   window.location.href = '/waiting.html?id=' + orderId;
 }
 
+// ─── OTP VERIFICATION ─────────────────────────────────────────
+let otpVerified = {};
+
+async function requestOTP(email) {
+  const r = await fetch(API + '/api/otp/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+  return r.ok;
+}
+
+async function showOTPModal(email, onSuccess) {
+  // Si déjà vérifié dans cette session
+  if (otpVerified[email]) { onSuccess(); return; }
+
+  await requestOTP(email);
+
+  const modal = document.createElement('div');
+  modal.id = 'otp-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML =
+    '<div style="background:var(--dark3);border:1px solid var(--border);border-top:2px solid var(--gold);padding:32px;max-width:380px;width:100%;text-align:center;">' +
+    '<div style="font-size:2rem;margin-bottom:12px;">📧</div>' +
+    '<div style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:8px;">Vérification email</div>' +
+    '<p style="color:var(--text-dim);font-size:.86rem;margin-bottom:20px;">Un code à 6 chiffres a été envoyé à <strong>' + email + '</strong></p>' +
+    '<input type="text" id="otp-input" maxlength="6" placeholder="_ _ _ _ _ _" style="width:100%;text-align:center;font-family:monospace;font-size:1.8rem;letter-spacing:8px;background:var(--dark);border:1px solid var(--border);color:var(--text);padding:14px;margin-bottom:14px;"/>' +
+    '<button onclick="verifyOTP(\'' + email + '\')" class="btn btn-gold btn-full" style="margin-bottom:10px;">Vérifier</button>' +
+    '<button onclick="requestOTP(\'' + email + '\').then(function(){alert(\'Code renvoyé !\')})" style="background:none;border:none;color:var(--text-dim);font-size:.82rem;cursor:pointer;text-decoration:underline;">Renvoyer le code</button>' +
+    '<div id="otp-error" style="color:var(--red);font-size:.82rem;margin-top:8px;"></div>' +
+    '</div>';
+
+  modal.dataset.callback = 'pending';
+  window._otpCallback = onSuccess;
+  document.body.appendChild(modal);
+}
+
+async function verifyOTP(email) {
+  const code = document.getElementById('otp-input').value.trim();
+  if (code.length !== 6) { document.getElementById('otp-error').textContent = 'Entrez les 6 chiffres.'; return; }
+
+  const r = await fetch(API + '/api/otp/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, code })
+  });
+  const data = await r.json();
+
+  if (data.success) {
+    otpVerified[email] = true;
+    document.getElementById('otp-modal').remove();
+    if (window._otpCallback) window._otpCallback();
+  } else {
+    document.getElementById('otp-error').textContent = data.error === 'Code expire' ? 'Code expiré. Renvoyez-en un.' : 'Code incorrect. Réessayez.';
+  }
+}
+
 // ─── PARRAINAGE ───────────────────────────────────────────────
 // Capturer le referrer depuis l'URL et le stocker
 (function captureReferrer() {
@@ -206,6 +264,155 @@ function goToWaiting(orderId) {
 function getReferrer() {
   return sessionStorage.getItem('cs_referrer') || '';
 }
+
+// ─── PWA ──────────────────────────────────────────────────────
+// Enregistrement du Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').then(function(reg) {
+      console.log('SW enregistre:', reg.scope);
+    }).catch(function(e) {
+      console.log('SW erreur:', e);
+    });
+  });
+}
+
+// Bouton d'installation PWA
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Afficher le bouton d'installation si pas encore installé
+  showInstallBanner();
+});
+
+function showInstallBanner() {
+  if (document.getElementById('pwa-banner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'pwa-banner';
+  banner.style.cssText = 'position:fixed;bottom:90px;left:16px;right:16px;background:#1a1a1a;border:1px solid #C9A84C;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:998;border-radius:2px;box-shadow:0 4px 20px rgba(0,0,0,.5);';
+  banner.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<img src="/assets/favicon_192.png" style="width:36px;height:36px;border-radius:4px;"/>' +
+      '<div><div style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:.9rem;color:#f0ede6;">Installer CongoSwap</div>' +
+      '<div style="font-size:.75rem;color:#8a8578;">Ajoutez l\'app sur votre écran d\'accueil</div></div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;">' +
+      '<button onclick="installPWA()" style="background:#C9A84C;color:#0a0a0a;border:none;padding:8px 14px;font-family:\'Syne\',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer;">Installer</button>' +
+      '<button onclick="document.getElementById(\'pwa-banner\').remove()" style="background:none;border:1px solid #3a3a3a;color:#8a8578;padding:8px 10px;cursor:pointer;font-size:.78rem;">✕</button>' +
+    '</div>';
+  document.body.appendChild(banner);
+}
+
+async function installPWA() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const result = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  const banner = document.getElementById('pwa-banner');
+  if (banner) banner.remove();
+}
+
+// ─── PWA ──────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').catch(function(e) {
+      console.log('SW erreur:', e);
+    });
+  });
+}
+
+// ─── CHAT EN DIRECT ───────────────────────────────────────────
+(function initChat() {
+  const CHAT_MESSAGES = [
+    { from: 'bot', text: 'Bonjour ! Comment puis-je vous aider ? 👋', delay: 500 },
+  ];
+
+  const btn = document.createElement('div');
+  btn.id = 'chat-btn';
+  btn.innerHTML = '💬';
+  btn.style.cssText = 'position:fixed;bottom:100px;right:28px;width:52px;height:52px;background:var(--dark3);border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:998;font-size:1.3rem;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:transform .2s;';
+  btn.onmouseover = function() { this.style.transform = 'scale(1.1)'; };
+  btn.onmouseout  = function() { this.style.transform = 'scale(1)'; };
+
+  const badge = document.createElement('div');
+  badge.style.cssText = 'position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--red);border-radius:50%;font-size:.6rem;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;';
+  badge.textContent = '1';
+  btn.style.position = 'fixed';
+  btn.appendChild(badge);
+
+  const panel = document.createElement('div');
+  panel.id = 'chat-panel';
+  panel.style.cssText = 'position:fixed;bottom:168px;right:28px;width:300px;background:var(--dark2);border:1px solid var(--border);border-top:2px solid var(--gold);z-index:997;display:none;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.5);';
+  panel.innerHTML =
+    '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">' +
+      '<div><div style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:.9rem;">Support CongoSwap</div>' +
+      '<div style="font-size:.72rem;color:var(--green);">● En ligne · Rép. en &lt;30min</div></div>' +
+      '<button onclick="toggleChat()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.1rem;">✕</button>' +
+    '</div>' +
+    '<div id="chat-msgs" style="padding:14px;height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;"></div>' +
+    '<div style="padding:10px;border-top:1px solid var(--border);display:flex;gap:8px;">' +
+      '<input id="chat-input" type="text" placeholder="Votre message..." onkeydown="if(event.key===\'Enter\')sendChatMsg()" style="flex:1;background:var(--dark);border:1px solid var(--border);color:var(--text);padding:8px 10px;font-size:.82rem;"/>' +
+      '<button onclick="sendChatMsg()" style="background:var(--gold);border:none;color:var(--dark);padding:8px 12px;cursor:pointer;font-weight:700;font-size:.82rem;">→</button>' +
+    '</div>';
+
+  document.body.appendChild(btn);
+  document.body.appendChild(panel);
+
+  // Message de bienvenue après 3s
+  setTimeout(function() {
+    addChatMsg('bot', 'Bonjour ! Besoin d\'aide pour un échange ou un abonnement ? 👋');
+    badge.style.display = 'flex';
+  }, 3000);
+
+  window.toggleChat = function() {
+    const isOpen = panel.style.display === 'flex';
+    panel.style.display = isOpen ? 'none' : 'flex';
+    badge.style.display = 'none';
+    if (!isOpen) document.getElementById('chat-input').focus();
+  };
+
+  btn.onclick = window.toggleChat;
+
+  window.addChatMsg = function(from, text) {
+    const msgs = document.getElementById('chat-msgs');
+    const el   = document.createElement('div');
+    const isBot = from === 'bot';
+    el.style.cssText = 'max-width:85%;padding:8px 12px;border-radius:2px;font-size:.82rem;line-height:1.5;' +
+      (isBot ? 'background:var(--dark3);color:var(--text);align-self:flex-start;border-left:2px solid var(--gold);' : 'background:var(--gold);color:var(--dark);align-self:flex-end;font-weight:600;');
+    el.textContent = text;
+    msgs.appendChild(el);
+    msgs.scrollTop = msgs.scrollHeight;
+  };
+
+  window.sendChatMsg = function() {
+    const input = document.getElementById('chat-input');
+    const text  = input.value.trim();
+    if (!text) return;
+    addChatMsg('user', text);
+    input.value = '';
+
+    // Réponses automatiques
+    const lower = text.toLowerCase();
+    setTimeout(function() {
+      if (lower.includes('achat') || lower.includes('acheter')) {
+        addChatMsg('bot', 'Pour acheter des cryptos, rendez-vous sur la page Acheter. Taux fixe : 630 FCFA/$. Minimum $5.');
+      } else if (lower.includes('vente') || lower.includes('vendre')) {
+        addChatMsg('bot', 'Pour vendre vos cryptos, allez sur la page Vendre. Vous recevez 575 FCFA/$.');
+      } else if (lower.includes('netflix') || lower.includes('spotify') || lower.includes('abonnement')) {
+        addChatMsg('bot', 'Nos abonnements sont disponibles sur la page Abonnements. Taux : 700 FCFA/$.');
+      } else if (lower.includes('taux') || lower.includes('prix')) {
+        addChatMsg('bot', 'Achat : 630 FCFA/$ · Vente : 575 FCFA/$ · Abonnements : 700 FCFA/$');
+      } else if (lower.includes('delai') || lower.includes('temps') || lower.includes('combien')) {
+        addChatMsg('bot', 'Les transactions sont traitées en 30 minutes à 2 heures pendant nos horaires (8h-20h).');
+      } else if (lower.includes('whatsapp') || lower.includes('contact') || lower.includes('aide')) {
+        addChatMsg('bot', 'Contactez-nous sur WhatsApp : +242 06 114 9792 ou via Telegram pour une réponse rapide.');
+      } else {
+        addChatMsg('bot', 'Merci pour votre message ! Pour une réponse rapide, contactez-nous sur WhatsApp : +242 06 114 9792');
+      }
+    }, 800);
+  };
+})();
 
 // ─── KEEP-ALIVE (evite le cold start Render) ──────────────────
 setInterval(function() {

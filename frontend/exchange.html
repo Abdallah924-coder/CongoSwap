@@ -249,6 +249,16 @@ loadPrices().then(updateSummary);
 
 document.getElementById('exchangeForm').addEventListener('submit', async function(e) {
   e.preventDefault();
+  const email = document.getElementById('email').value;
+  if (!email || !email.includes('@')) {
+    document.getElementById('formAlert').className = 'alert error';
+    document.getElementById('formAlert').textContent = 'Entrez un email valide.';
+    return;
+  }
+  await showOTPModal(email, submitExchangeForm);
+});
+
+async function submitExchangeForm() {
   const btn = document.getElementById('submitBtn');
   const alertEl = document.getElementById('formAlert');
   alertEl.className = 'alert';

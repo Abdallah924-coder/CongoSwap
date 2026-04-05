@@ -469,9 +469,76 @@ async function viewOrder(id) {
         <div style="display:flex;gap:8px;margin-top:10px;">
           <button class="action-btn btn-validate" style="padding:8px 16px;font-size:.8rem;" onclick="updateOrder('${id}','validated')">✓ Valider</button>
           <button class="action-btn btn-reject" style="padding:8px 16px;font-size:.8rem;" onclick="updateOrder('${id}','rejected')">✗ Refuser</button>
+          ${order.type === 'payment' ? `<button class="action-btn" style="padding:8px 16px;font-size:.8rem;background:rgba(52,152,219,.15);color:var(--blue);border:1px solid rgba(52,152,219,.3);" onclick="sendAccessForm('${id}')">📧 Envoyer accès</button>` : ''}
         </div>
       </div>`;
   } catch(e) { console.error(e); }
+}
+
+// Modal envoi des accès abonnement
+function sendAccessForm(orderId) {
+  const modal = document.createElement('div');
+  modal.id = 'access-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:var(--dark3);border:1px solid var(--border);padding:32px;max-width:460px;width:100%;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:20px;color:var(--gold);">📧 Envoyer les accès au client</div>
+      <div class="form-group">
+        <label>Service / Plateforme</label>
+        <input type="text" id="acc-service" placeholder="Ex: Netflix Premium" style="width:100%;background:var(--dark2);border:1px solid var(--border);color:var(--text);padding:10px;"/>
+      </div>
+      <div class="form-group">
+        <label>Email du compte</label>
+        <input type="text" id="acc-email" placeholder="Ex: compte@netflix.com" style="width:100%;background:var(--dark2);border:1px solid var(--border);color:var(--text);padding:10px;"/>
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="text" id="acc-pass" placeholder="Mot de passe du compte" style="width:100%;background:var(--dark2);border:1px solid var(--border);color:var(--text);padding:10px;"/>
+      </div>
+      <div class="form-group">
+        <label>Instructions (optionnel)</label>
+        <textarea id="acc-note" placeholder="Ex: Utilisez le profil 3, ne changez pas le mot de passe..." style="width:100%;background:var(--dark2);border:1px solid var(--border);color:var(--text);padding:10px;min-height:70px;resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-gold" style="flex:1;" onclick="submitAccess('${orderId}')">Envoyer par email</button>
+        <button class="btn btn-outline" onclick="document.getElementById('access-modal').remove()">Annuler</button>
+      </div>
+      <div id="acc-alert" class="alert" style="margin-top:10px;"></div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function submitAccess(orderId) {
+  const service = document.getElementById('acc-service').value;
+  const email   = document.getElementById('acc-email').value;
+  const pass    = document.getElementById('acc-pass').value;
+  const note    = document.getElementById('acc-note').value;
+  const alertEl = document.getElementById('acc-alert');
+
+  if (!service || !email || !pass) {
+    alertEl.className = 'alert error';
+    alertEl.textContent = 'Remplissez tous les champs obligatoires.';
+    return;
+  }
+
+  try {
+    const r = await authFetch(`${API}/api/admin/send-access`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, service, accountEmail: email, accountPass: pass, note })
+    });
+    const data = await r.json();
+    if (data.success) {
+      alertEl.className = 'alert';
+      alertEl.style.background = 'rgba(46,204,113,.1)';
+      alertEl.style.color = 'var(--green)';
+      alertEl.textContent = 'Accès envoyés avec succès !';
+      setTimeout(function() { document.getElementById('access-modal').remove(); }, 2000);
+    } else throw new Error(data.error);
+  } catch(e) {
+    alertEl.className = 'alert error';
+    alertEl.textContent = 'Erreur : ' + e.message;
+  }
 }
 
 async function updateOrder(id, status) {
@@ -498,7 +565,38 @@ async function deleteOrder(id) {
   } catch(e) { alert('Erreur.'); }
 }
 
-async function loadAnalytics() {
+// ── NOTIFICATIONS SONORES ─────────────────────────────────────
+function playNotif() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+}
+
+// Auto-refresh toutes les 30s pour détecter nouvelles commandes
+let lastOrderCount = 0;
+async function checkNewOrders() {
+  try {
+    const r = await authFetch(`${API}/api/admin/stats`);
+    const d = await r.json();
+    if (lastOrderCount > 0 && d.pending > lastOrderCount) {
+      playNotif();
+      const n = d.pending - lastOrderCount;
+      document.title = '(' + n + ' nouvelle' + (n>1?'s':'') + ') CongoSwap Admin';
+      setTimeout(function() { document.title = 'CongoSwap — Administration'; }, 5000);
+    }
+    lastOrderCount = d.pending;
+  } catch(e) {}
+}
+setInterval(checkNewOrders, 30000);
   const container = document.getElementById('analytics-content');
   try {
     const r    = await authFetch(`${API}/api/admin/analytics`);

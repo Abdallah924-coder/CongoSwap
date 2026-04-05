@@ -292,14 +292,25 @@ loadPrices().then(() => updateCFA());
 // FORM SUBMIT
 document.getElementById('buyForm').addEventListener('submit', async function(e) {
   e.preventDefault();
+  const email = document.getElementById('email').value;
+  if (!email || !email.includes('@')) {
+    document.getElementById('formAlert').className = 'alert error';
+    document.getElementById('formAlert').textContent = 'Entrez un email valide.';
+    return;
+  }
+  // Vérification OTP
+  await showOTPModal(email, submitBuyForm);
+});
+
+async function submitBuyForm() {
   const btn = document.getElementById('submitBtn');
   const alertEl = document.getElementById('formAlert');
   alertEl.className = 'alert';
 
   const usd = parseFloat(amountUsdEl.value);
   if (!usd || usd < 5) {
-    document.getElementById('formAlert').className = 'alert error';
-    document.getElementById('formAlert').textContent = 'Le montant minimum est de $5.';
+    alertEl.className = 'alert error';
+    alertEl.textContent = 'Le montant minimum est de $5.';
     return;
   }
   const cfa = usd * RATES.buy;
@@ -317,10 +328,8 @@ document.getElementById('buyForm').addEventListener('submit', async function(e) 
     : document.getElementById('wallet_address').value;
 
   if (!walletVal || walletVal.length < 5) {
-    document.getElementById('formAlert').className = 'alert error';
-    document.getElementById('formAlert').textContent = receiveMethod === 'binance_pay'
-      ? 'Entrez votre ID Binance Pay.'
-      : 'Entrez votre adresse wallet.';
+    alertEl.className = 'alert error';
+    alertEl.textContent = receiveMethod === 'binance_pay' ? 'Entrez votre ID Binance Pay.' : 'Entrez votre adresse wallet.';
     return;
   }
 

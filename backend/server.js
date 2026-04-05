@@ -209,6 +209,25 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
     ).catch(function(e) { console.error('Telegram erreur:', e.message); });
 
     res.json({ success: true, order_id: id });
+
+    // ── Programme fidelite ──────────────────────────────────────
+    try {
+      const userOrders = await dbConn.collection('orders').countDocuments({ email, status: 'validated' });
+      if (userOrders > 0 && userOrders % 5 === 0) {
+        sendEmail(email, 'CongoSwap - Bonus fidelite !',
+          '<div style="font-family:sans-serif;max-width:500px;margin:auto;background:#0d0d0d;color:#f0ede6;padding:32px;border-radius:8px;">' +
+          '<h2 style="color:#C9A84C;">Merci pour votre fidelite !</h2>' +
+          '<p>Vous avez effectue <strong>' + (userOrders + 1) + ' transactions</strong> sur CongoSwap.</p>' +
+          '<div style="background:#1c1c1c;border:2px solid #C9A84C;padding:20px;border-radius:6px;text-align:center;margin:20px 0;">' +
+          '<div style="font-size:2rem;margin-bottom:8px;">🎁</div>' +
+          '<div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:1.4rem;color:#C9A84C;">$1 offert</div>' +
+          '<div style="font-size:.85rem;color:#8a8578;margin-top:6px;">Bonus applique sur votre prochaine transaction</div>' +
+          '</div>' +
+          '<p style="color:#8a8578;font-size:.85rem;">Mentionnez ce code lors de votre prochaine commande : <strong style="color:#C9A84C;">LOYAL' + userOrders + '</strong></p>' +
+          '</div>'
+        ).catch(function(e) {});
+      }
+    } catch(e) {}
   } catch (e) { console.error(e); res.status(500).json({ error: 'Erreur serveur' }); }
 });
 
@@ -217,6 +236,43 @@ app.get('/api/orders/:id', async (req, res) => {
   if (!order) return res.status(404).json({ error: 'Commande introuvable' });
   const { id, type, status, crypto, amount_usd, amount_cfa, created_at } = order;
   res.json({ id, type, status, crypto, amount_usd, amount_cfa, created_at });
+});
+
+// ─── OTP VERIFICATION ─────────────────────────────────────────
+app.post('/api/otp/send', async (req, res) => {
+  const { email } = req.body;
+  if (!email || !email.includes('@')) return res.status(400).json({ error: 'Email invalide' });
+
+  const code    = Math.floor(100000 + Math.random() * 900000).toString();
+  const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+  await dbConn.collection('otp').updateOne(
+    { email },
+    { $set: { email, code, expires, created_at: new Date() } },
+    { upsert: true }
+  );
+
+  await sendEmail(email, 'CongoSwap - Code de verification',
+    '<div style="font-family:sans-serif;max-width:500px;margin:auto;background:#0d0d0d;color:#f0ede6;padding:32px;border-radius:8px;">' +
+    '<h2 style="color:#C9A84C;">CongoSwap — Verification</h2>' +
+    '<p>Votre code de verification :</p>' +
+    '<div style="text-align:center;margin:24px 0;">' +
+    '<span style="font-family:monospace;font-size:2.5rem;font-weight:800;letter-spacing:12px;color:#C9A84C;background:#1c1c1c;padding:16px 24px;">' + code + '</span>' +
+    '</div>' +
+    '<p style="color:#8a8578;font-size:.85rem;">Ce code expire dans 10 minutes. Ne le partagez avec personne.</p>' +
+    '</div>'
+  );
+
+  res.json({ success: true });
+});
+
+app.post('/api/otp/verify', async (req, res) => {
+  const { email, code } = req.body;
+  const otp = await dbConn.collection('otp').findOne({ email });
+  if (!otp || otp.code !== code) return res.status(400).json({ error: 'Code invalide' });
+  if (new Date() > otp.expires) return res.status(400).json({ error: 'Code expire' });
+  await dbConn.collection('otp').deleteOne({ email });
+  res.json({ success: true });
 });
 
 // ─── PAIEMENTS INTERNATIONAUX ─────────────────────────────────
@@ -378,6 +434,32 @@ app.patch('/api/admin/orders/:id', authRequired, async (req, res) => {
 
 app.delete('/api/admin/orders/:id', authRequired, async (req, res) => {
   await db.deleteOrder(req.params.id);
+  res.json({ success: true });
+});
+
+// Envoi des accès abonnement au client
+app.post('/api/admin/send-access', authRequired, async (req, res) => {
+  const { orderId, service, accountEmail, accountPass, note } = req.body;
+  const order = await db.getOrder(orderId);
+  if (!order) return res.status(404).json({ error: 'Commande introuvable' });
+
+  await sendEmail(order.email, 'CongoSwap - Vos accès ' + service,
+    '<div style="font-family:sans-serif;max-width:500px;margin:auto;background:#0d0d0d;color:#f0ede6;padding:32px;border-radius:8px;">' +
+    '<h2 style="color:#C9A84C;">CongoSwap — Vos accès sont prêts !</h2>' +
+    '<p>Bonjour,</p>' +
+    '<p>Votre abonnement <strong>' + service + '</strong> est activé. Voici vos identifiants de connexion :</p>' +
+    '<div style="background:#1c1c1c;padding:20px;border-radius:6px;margin:16px 0;border-left:3px solid #C9A84C;">' +
+    '<p style="margin:6px 0;"><strong>Service :</strong> ' + service + '</p>' +
+    '<p style="margin:6px 0;"><strong>Email :</strong> ' + accountEmail + '</p>' +
+    '<p style="margin:6px 0;"><strong>Mot de passe :</strong> <span style="font-family:monospace;background:#2a2a2a;padding:2px 8px;">' + accountPass + '</span></p>' +
+    (note ? '<p style="margin:12px 0 0;color:#8a8578;font-size:.88rem;">' + note + '</p>' : '') +
+    '</div>' +
+    '<p style="color:#e74c3c;font-size:.85rem;">⚠️ Ne partagez pas ces identifiants. Ne modifiez pas le mot de passe.</p>' +
+    '<p style="color:#8a8578;font-size:.85rem;">Merci de faire confiance à CongoSwap !</p>' +
+    '</div>'
+  );
+
+  await db.updateOrder(orderId, { status: 'validated', notes: 'Accès envoyés : ' + service });
   res.json({ success: true });
 });
 

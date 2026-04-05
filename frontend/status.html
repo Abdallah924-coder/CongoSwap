@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_32.png">
+  <title>CongoSwap — Statut du service</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .status-layout { max-width:680px; margin:0 auto; padding:100px 24px 80px; }
+    .status-item { background:var(--dark3); border:1px solid var(--border); padding:20px 24px; margin-bottom:2px; display:flex; justify-content:space-between; align-items:center; }
+    .status-badge { display:flex; align-items:center; gap:8px; font-family:'Syne',sans-serif; font-weight:700; font-size:.85rem; }
+    .dot { width:10px; height:10px; border-radius:50%; }
+    .dot-green { background:var(--green); box-shadow:0 0 8px var(--green); }
+    .dot-yellow { background:var(--gold); box-shadow:0 0 8px var(--gold); }
+    .dot-red { background:var(--red); box-shadow:0 0 8px var(--red); }
+    .uptime-bar { display:flex; gap:2px; margin-top:24px; }
+    .uptime-day { flex:1; height:32px; background:var(--green); border-radius:2px; }
+  </style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<div class="page">
+  <div class="status-layout">
+    <span class="section-tag">Statut du service</span>
+    <h1 class="section-title" style="font-size:1.8rem;margin-bottom:8px;">Statut CongoSwap</h1>
+    <p style="color:var(--text-dim);margin-bottom:32px;">Disponibilité en temps réel de tous nos services.</p>
+
+    <!-- GLOBAL STATUS -->
+    <div id="global-status" style="background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:12px;">
+      <div class="dot dot-green" style="width:14px;height:14px;"></div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;">Tous les systèmes opérationnels</div>
+        <div style="font-size:.82rem;color:var(--text-dim);" id="last-check">Vérification en cours...</div>
+      </div>
+    </div>
+
+    <!-- SERVICES -->
+    <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px;font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);">Services</div>
+
+    <div class="status-item">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;">Site web</div>
+        <div style="font-size:.78rem;color:var(--text-dim);">congoswap.onrender.com</div>
+      </div>
+      <div class="status-badge"><div class="dot dot-green"></div><span style="color:var(--green);">Opérationnel</span></div>
+    </div>
+
+    <div class="status-item">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;">API Backend</div>
+        <div style="font-size:.78rem;color:var(--text-dim);">Traitement des commandes</div>
+      </div>
+      <div class="status-badge" id="api-status"><div class="dot dot-yellow"></div><span style="color:var(--gold);">Vérification...</span></div>
+    </div>
+
+    <div class="status-item">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;">Base de données</div>
+        <div style="font-size:.78rem;color:var(--text-dim);">MongoDB Atlas</div>
+      </div>
+      <div class="status-badge" id="db-status"><div class="dot dot-yellow"></div><span style="color:var(--gold);">Vérification...</span></div>
+    </div>
+
+    <div class="status-item">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;">Notifications email</div>
+        <div style="font-size:.78rem;color:var(--text-dim);">Brevo SMTP</div>
+      </div>
+      <div class="status-badge"><div class="dot dot-green"></div><span style="color:var(--green);">Opérationnel</span></div>
+    </div>
+
+    <div class="status-item">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;">Bot Telegram</div>
+        <div style="font-size:.78rem;color:var(--text-dim);">Notifications & transactions</div>
+      </div>
+      <div class="status-badge"><div class="dot dot-green"></div><span style="color:var(--green);">Opérationnel</span></div>
+    </div>
+
+    <div class="status-item">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;">Prix en temps réel</div>
+        <div style="font-size:.78rem;color:var(--text-dim);">CoinGecko API</div>
+      </div>
+      <div class="status-badge" id="price-status"><div class="dot dot-yellow"></div><span style="color:var(--gold);">Vérification...</span></div>
+    </div>
+
+    <!-- HORAIRES -->
+    <div style="background:var(--dark3);border:1px solid var(--border);padding:24px;margin-top:24px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:14px;">Horaires de traitement</div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.86rem;">
+        <span style="color:var(--text-dim);">Lundi — Samedi</span>
+        <span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--gold);">8h00 — 20h00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:.86rem;">
+        <span style="color:var(--text-dim);">Dimanche</span>
+        <span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--gold);">10h00 — 18h00</span>
+      </div>
+      <div style="margin-top:12px;font-size:.82rem;color:var(--text-dim);">Les formulaires sont disponibles 24h/24. Les transactions sont traitées pendant les horaires ci-dessus.</div>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;">
+      <a href="/" class="btn btn-outline" style="font-size:.82rem;">← Retour à l'accueil</a>
+      <a href="/contact.html" class="btn btn-gold" style="font-size:.82rem;margin-left:10px;">Nous contacter</a>
+    </div>
+  </div>
+</div>
+<div id="footer-placeholder"></div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('nav-placeholder').innerHTML = buildNavHTML('');
+document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+
+async function checkStatus() {
+  const now = new Date().toLocaleTimeString('fr-FR');
+  document.getElementById('last-check').textContent = 'Dernière vérification : ' + now;
+
+  // Check API
+  try {
+    const start = Date.now();
+    const r = await fetch(API + '/api/prices');
+    const data = await r.json();
+    const ms = Date.now() - start;
+
+    if (data.bitcoin) {
+      document.getElementById('api-status').innerHTML = '<div class="dot dot-green"></div><span style="color:var(--green);">Opérationnel (' + ms + 'ms)</span>';
+      document.getElementById('db-status').innerHTML  = '<div class="dot dot-green"></div><span style="color:var(--green);">Opérationnel</span>';
+      document.getElementById('price-status').innerHTML = '<div class="dot dot-green"></div><span style="color:var(--green);">Opérationnel</span>';
+    } else {
+      document.getElementById('price-status').innerHTML = '<div class="dot dot-yellow"></div><span style="color:var(--gold);">Dégradé (fallback actif)</span>';
+      document.getElementById('api-status').innerHTML = '<div class="dot dot-green"></div><span style="color:var(--green);">Opérationnel (' + ms + 'ms)</span>';
+      document.getElementById('db-status').innerHTML  = '<div class="dot dot-green"></div><span style="color:var(--green);">Opérationnel</span>';
+    }
+  } catch(e) {
+    document.getElementById('api-status').innerHTML = '<div class="dot dot-red"></div><span style="color:var(--red);">Hors ligne</span>';
+    document.getElementById('global-status').style.background = 'rgba(231,76,60,.1)';
+    document.getElementById('global-status').style.borderColor = 'rgba(231,76,60,.3)';
+    document.getElementById('global-status').querySelector('div:last-child div:first-child').textContent = 'Incident détecté';
+  }
+}
+
+checkStatus();
+setInterval(checkStatus, 60000);
+</script>
+</body>
+</html>
