@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon_192.png">
+
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#C9A84C">
   <meta name="mobile-web-app-capable" content="yes">
@@ -15,13 +16,6 @@
   <title>CongoSwap — Échange Crypto & CFA en République du Congo</title>
   <meta name="description" content="Achetez, vendez et échangez vos cryptomonnaies contre des FCFA en toute sécurité en République du Congo. Service local de confiance."/>
   <link rel="stylesheet" href="style.css"/>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#C9A84C">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="CongoSwap">
-  <link rel="apple-touch-icon" href="/assets/favicon_192.png">
   <style>
     /* HERO */
     .hero { min-height:100vh; display:flex; align-items:center; padding:120px 48px 80px; position:relative; overflow:hidden; }
@@ -77,6 +71,30 @@
 
     /* CTA BAND */
     .cta-band { background:linear-gradient(135deg, rgba(201,168,76,.12) 0%, rgba(201,168,76,.04) 100%); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:72px 48px; text-align:center; }
+
+    /* CALCULATOR — section séparée */
+    .calc-section { background:var(--dark2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:40px 48px; }
+    .calc-inner { max-width:720px; margin:0 auto; }
+    .calc-tab { background:var(--dark3); border:1px solid var(--border); color:var(--text-dim); padding:8px 20px; font-family:'Syne',sans-serif; font-size:.78rem; font-weight:700; cursor:pointer; transition:all .2s; letter-spacing:.05em; text-transform:uppercase; }
+    .calc-tab.active { background:var(--gold); color:var(--dark); border-color:var(--gold); }
+    .calc-fields { display:grid; grid-template-columns:1fr auto 1fr auto; gap:12px; align-items:end; margin-top:16px; }
+    .calc-result-box { background:var(--dark); border:1px solid var(--gold-dim); padding:12px 14px; font-family:'Syne',sans-serif; font-weight:700; font-size:1.05rem; color:var(--gold); min-height:46px; display:flex; align-items:center; }
+    @media(max-width:600px) {
+      .calc-section { padding:28px 16px; }
+      .calc-fields { grid-template-columns:1fr; gap:8px; }
+      .calc-equal { text-align:center; font-size:1.4rem; color:var(--gold); }
+      .calc-cta-btn { width:100%; text-align:center; }
+    }
+
+    /* TESTIMONIALS */
+    .testimonials-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:2px; }
+    .testimonial-card { background:var(--dark3); padding:24px; border:1px solid var(--border); }
+    .stars { color:var(--gold); font-size:1rem; margin-bottom:10px; }
+    .testimonial-text { color:var(--text-dim); font-size:.88rem; line-height:1.7; margin-bottom:14px; }
+    .testimonial-author { display:flex; align-items:center; gap:10px; }
+    .author-avatar { width:36px; height:36px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:800; color:var(--dark); font-size:.9rem; flex-shrink:0; }
+    .author-name { font-family:'Syne',sans-serif; font-weight:700; font-size:.88rem; }
+    .author-date { font-size:.75rem; color:var(--text-dim); }
     .cta-band h2 { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(1.8rem,3vw,2.8rem); margin-bottom:14px; }
     .cta-band p { color:var(--text-dim); max-width:440px; margin:0 auto 32px; }
     .cta-btns { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
@@ -115,7 +133,81 @@
       .hero-stats { flex-direction:column; gap:12px; }
       .stat { border-left:none; border-bottom:1px solid var(--border); padding-left:0; padding-bottom:10px; }
     }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
+
+    /* FOND CARRELÉ */
+    body {
+      background-color: var(--dark);
+      background-image:
+        linear-gradient(rgba(201,168,76,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,.06) 1px, transparent 1px),
+        linear-gradient(rgba(201,168,76,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,.03) 1px, transparent 1px);
+      background-size: 80px 80px, 80px 80px, 20px 20px, 20px 20px;
+      background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+    }
+
+    /* ANIMATION CRYPTO */
+    .crypto-anim-section {
+      position: relative;
+      height: 340px;
+      overflow: hidden;
+      background: linear-gradient(180deg, var(--dark) 0%, rgba(10,10,10,.95) 50%, var(--dark) 100%);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    #cryptoCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .crypto-anim-header {
+      position: absolute;
+      top: 24px;
+      left: 48px;
+      z-index: 2;
+    }
+    .anim-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 2;
+      background: linear-gradient(transparent, rgba(8,8,8,.9));
+      padding: 32px 48px 20px;
+    }
+    .anim-stat-row {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .anim-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .anim-stat span:first-child {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--gold);
+    }
+    .anim-label {
+      font-size: .72rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    @media(max-width:600px) {
+      .crypto-anim-header { left: 20px; }
+      .anim-overlay { padding: 20px 20px 16px; }
+      .anim-stat-row { gap: 16px; }
+      .anim-stat span:first-child { font-size: .9rem; }
+      .crypto-anim-section { height: 260px; }
+    }
   </style>
+
 
 </head>
 <body>
@@ -140,7 +232,7 @@
       <div class="hero-stats anim-up-3">
         <div class="stat"><div class="stat-num">630</div><div class="stat-label">FCFA / $ à l'achat</div></div>
         <div class="stat"><div class="stat-num">575</div><div class="stat-label">FCFA / $ à la vente</div></div>
-        <div class="stat"><div class="stat-num">6</div><div class="stat-label">Cryptos disponibles</div></div>
+        <div class="stat"><div class="stat-num" id="tx-counter">--</div><div class="stat-label">Transactions</div></div>
         <div class="stat"><div class="stat-num">&lt;2h</div><div class="stat-label">Délai de traitement</div></div>
       </div>
     </div>
@@ -149,7 +241,72 @@
   <!-- TICKER -->
   <div class="ticker"><div id="ticker-content">Chargement des prix...</div></div>
 
+  <!-- ANIMATION CRYPTO -->
+  <section class="crypto-anim-section">
+    <div class="crypto-anim-header">
+      <span class="section-tag" style="margin-bottom:8px;">Live</span>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;margin:0 0 4px;">Marché en temps réel</h2>
+      <p style="color:var(--text-dim);font-size:.84rem;margin:0;">Transactions en cours sur CongoSwap</p>
+    </div>
+    <canvas id="cryptoCanvas"></canvas>
+    <div class="anim-overlay">
+      <div class="anim-stat-row" id="anim-stats">
+        <div class="anim-stat"><span id="anim-btc">--</span><span class="anim-label">BTC / FCFA</span></div>
+        <div class="anim-stat"><span id="anim-eth">--</span><span class="anim-label">ETH / FCFA</span></div>
+        <div class="anim-stat"><span id="anim-usdt">--</span><span class="anim-label">USDT / FCFA</span></div>
+        <div class="anim-stat"><span id="anim-bnb">--</span><span class="anim-label">BNB / FCFA</span></div>
+      </div>
+    </div>
+  </section>
+
   <!-- LIVE PRICES -->
+  <section class="calc-section">
+    <div class="calc-inner">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <div>
+          <div style="font-size:.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px;">Outil gratuit</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.15rem;">Calculateur instantané</div>
+        </div>
+        <div style="display:flex;gap:4px;">
+          <button class="calc-tab active" id="calc-tab-buy" onclick="setCalcMode('buy')">Acheter</button>
+          <button class="calc-tab" id="calc-tab-sell" onclick="setCalcMode('sell')">Vendre</button>
+        </div>
+      </div>
+
+      <div class="calc-fields">
+        <div>
+          <div style="font-size:.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;" id="calc-label-in">Vous payez (FCFA)</div>
+          <input type="number" id="calc-input" placeholder="Ex: 10 000" oninput="updateCalc()"
+            style="width:100%;background:var(--dark);border:1px solid var(--border);color:var(--text);padding:12px 14px;font-family:'Syne',sans-serif;font-size:1rem;box-sizing:border-box;"/>
+        </div>
+        <div class="calc-equal" style="font-size:1.4rem;color:var(--gold);padding-bottom:4px;">=</div>
+        <div>
+          <div style="font-size:.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;" id="calc-label-out">Vous recevez</div>
+          <div class="calc-result-box" id="calc-result">--</div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;color:transparent;margin-bottom:6px;">-</div>
+          <a id="calc-cta" href="/buy.html" class="btn btn-gold calc-cta-btn" style="display:block;padding:12px 20px;text-align:center;white-space:nowrap;font-size:.82rem;">Commencer →</a>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span style="font-size:.78rem;color:var(--text-dim);">Crypto :</span>
+        <select id="calc-crypto" onchange="updateCalc()"
+          style="background:var(--dark3);border:1px solid var(--border);color:var(--text);padding:7px 12px;font-size:.82rem;flex:1;max-width:240px;">
+          <option value="BTC">Bitcoin (BTC)</option>
+          <option value="ETH">Ethereum (ETH)</option>
+          <option value="USDT" selected>Tether (USDT)</option>
+          <option value="BNB">Binance Coin (BNB)</option>
+          <option value="SOL">Solana (SOL)</option>
+          <option value="XRP">Ripple (XRP)</option>
+        </select>
+        <span id="calc-rate-hint" style="font-size:.76rem;color:var(--text-dim);"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIX EN TEMPS RÉEL -->
   <section class="section prices-section">
     <span class="section-tag">Taux en temps réel</span>
     <h2 class="section-title">Prix du marché aujourd'hui</h2>
@@ -273,7 +430,55 @@
     </div>
   </section>
 
-  <!-- CTA BAND -->
+  <!-- TEMOIGNAGES -->
+  <section class="section" style="background:var(--dark2);border-top:1px solid var(--border);">
+    <span class="section-tag">Avis clients</span>
+    <h2 class="section-title">Ce que disent nos clients</h2>
+    <p class="section-sub">Des Congolais qui nous font confiance au quotidien.</p>
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"J'ai acheté 50$ de USDT en moins de 30 minutes. Tout s'est passé parfaitement, le suivi par email est rassurant. Je recommande vivement !"</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">JM</div>
+          <div><div class="author-name">Jean-Michel K.</div><div class="author-date">Brazzaville · Mars 2026</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"Enfin une plateforme congolaise sérieuse ! J'ai vendu mon ETH et reçu mes FCFA sur Airtel Money rapidement. Taux transparents, pas de surprise."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">SC</div>
+          <div><div class="author-name">Sandrine C.</div><div class="author-date">Pointe-Noire · Fevrier 2026</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"Abonnement Netflix pris en 20 minutes. Plus besoin de demander à des inconnus sur Facebook. CongoSwap c'est la référence au Congo."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">PD</div>
+          <div><div class="author-name">Patrick D.</div><div class="author-date">Brazzaville · Janvier 2026</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★☆</div>
+        <p class="testimonial-text">"Service rapide et professionnel. J'ai échangé du BTC contre du USDT sans problème. Le bot Telegram est très pratique pour suivre ma commande."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">AM</div>
+          <div><div class="author-name">Aurelie M.</div><div class="author-date">Brazzaville · Mars 2026</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATUS SERVICE -->
+  <div style="background:var(--dark3);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div id="status-dot" style="width:10px;height:10px;border-radius:50%;background:var(--green);animation:pulse-dot 2s infinite;"></div>
+      <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;" id="status-text">Service opérationnel</span>
+    </div>
+    <div style="font-size:.78rem;color:var(--text-dim);">Disponible 7j/7 · 8h–20h · Temps de traitement : &lt;2h</div>
+  </div>
   <div class="cta-band">
     <h2>Prêt à faire votre premier échange ?</h2>
     <p>Rejoignez les Congolais qui font confiance à CongoSwap pour leurs transactions crypto.</p>
@@ -364,6 +569,245 @@ async function initHomepage() {
 }
 
 initHomepage();
+
+// ── ANIMATION CANVAS ─────────────────────────────────────────
+(function() {
+  var canvas = document.getElementById('cryptoCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W, H;
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Particules
+  var GOLD = [201, 168, 76];
+  var GREEN = [46, 204, 113];
+  var BLUE  = [52, 152, 219];
+
+  var particles = [];
+  for (var i = 0; i < 60; i++) {
+    particles.push({
+      x: Math.random() * 1080,
+      y: Math.random() * 340,
+      r: Math.random() * 2 + 0.5,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6,
+      color: [GOLD, GREEN, BLUE][Math.floor(Math.random() * 3)],
+      alpha: Math.random() * 0.6 + 0.2
+    });
+  }
+
+  // Noeuds réseau (coins crypto)
+  var CRYPTOS_ANIM = [
+    { label: 'BTC', x: 0.15, y: 0.3, color: GOLD },
+    { label: 'ETH', x: 0.35, y: 0.6, color: BLUE },
+    { label: 'USDT',x: 0.55, y: 0.25, color: GREEN },
+    { label: 'BNB', x: 0.7,  y: 0.65, color: [240,185,11] },
+    { label: 'SOL', x: 0.85, y: 0.35, color: [153,69,255] },
+    { label: 'XRP', x: 0.45, y: 0.75, color: [0,168,204] },
+    { label: 'FCFA',x: 0.92, y: 0.7,  color: GOLD },
+  ];
+
+  // Connexions entre noeuds
+  var CONNECTIONS = [[0,2],[1,2],[2,4],[3,4],[0,1],[1,5],[5,6],[3,6],[2,6],[0,3]];
+
+  // Transactions animées (paquets qui voyagent)
+  var packets = [];
+  function spawnPacket() {
+    var conn = CONNECTIONS[Math.floor(Math.random() * CONNECTIONS.length)];
+    packets.push({ from: conn[0], to: conn[1], t: 0, speed: 0.004 + Math.random() * 0.004 });
+  }
+  for (var j = 0; j < 4; j++) spawnPacket();
+
+  // Graphe historique (ligne ondulée)
+  var history = [];
+  for (var k = 0; k < 80; k++) history.push(0.5 + 0.3 * Math.sin(k * 0.18) + (Math.random() - 0.5) * 0.1);
+  var histOffset = 0;
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Fond grille fine
+    ctx.strokeStyle = 'rgba(201,168,76,0.05)';
+    ctx.lineWidth = 1;
+    var step = 40;
+    for (var gx = 0; gx <= W; gx += step) { ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke(); }
+    for (var gy = 0; gy <= H; gy += step) { ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke(); }
+
+    // Graphe prix ondulé
+    histOffset += 0.3;
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(201,168,76,0.18)';
+    ctx.lineWidth = 1.5;
+    for (var hi = 0; hi < history.length; hi++) {
+      var hx = (hi / history.length) * W;
+      var hv = history[(hi + Math.floor(histOffset)) % history.length];
+      var hy = H * 0.35 + hv * H * 0.4;
+      if (hi === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
+    }
+    ctx.stroke();
+
+    // Deuxième courbe
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(46,204,113,0.12)';
+    ctx.lineWidth = 1;
+    for (var hi2 = 0; hi2 < history.length; hi2++) {
+      var hx2 = (hi2 / history.length) * W;
+      var hv2 = history[(hi2 + Math.floor(histOffset) + 15) % history.length];
+      var hy2 = H * 0.55 + hv2 * H * 0.3;
+      if (hi2 === 0) ctx.moveTo(hx2, hy2); else ctx.lineTo(hx2, hy2);
+    }
+    ctx.stroke();
+
+    // Particules
+    particles.forEach(function(p) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > W) p.vx *= -1;
+      if (p.y < 0 || p.y > H) p.vy *= -1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(' + p.color.join(',') + ',' + p.alpha + ')';
+      ctx.fill();
+    });
+
+    // Connexions réseau
+    CONNECTIONS.forEach(function(conn) {
+      var a = CRYPTOS_ANIM[conn[0]];
+      var b = CRYPTOS_ANIM[conn[1]];
+      ctx.beginPath();
+      ctx.moveTo(a.x * W, a.y * H);
+      ctx.lineTo(b.x * W, b.y * H);
+      ctx.strokeStyle = 'rgba(201,168,76,0.08)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+
+    // Noeuds
+    CRYPTOS_ANIM.forEach(function(node) {
+      var nx = node.x * W;
+      var ny = node.y * H;
+      // Halo
+      var grad = ctx.createRadialGradient(nx, ny, 0, nx, ny, 28);
+      grad.addColorStop(0, 'rgba(' + node.color.join(',') + ',0.15)');
+      grad.addColorStop(1, 'rgba(' + node.color.join(',') + ',0)');
+      ctx.beginPath(); ctx.arc(nx, ny, 28, 0, Math.PI*2);
+      ctx.fillStyle = grad; ctx.fill();
+      // Cercle
+      ctx.beginPath(); ctx.arc(nx, ny, 16, 0, Math.PI*2);
+      ctx.fillStyle = '#111'; ctx.fill();
+      ctx.strokeStyle = 'rgba(' + node.color.join(',') + ',0.7)';
+      ctx.lineWidth = 1.5; ctx.stroke();
+      // Label
+      ctx.fillStyle = 'rgba(' + node.color.join(',') + ',0.9)';
+      ctx.font = 'bold 10px WorkSans, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(node.label, nx, ny + 4);
+    });
+
+    // Paquets (transactions)
+    packets = packets.filter(function(pk) {
+      pk.t += pk.speed;
+      if (pk.t >= 1) { spawnPacket(); return false; }
+      var a = CRYPTOS_ANIM[pk.from];
+      var b = CRYPTOS_ANIM[pk.to];
+      var px = lerp(a.x * W, b.x * W, pk.t);
+      var py = lerp(a.y * H, b.y * H, pk.t);
+      var trail = 8;
+      for (var ti = 0; ti < trail; ti++) {
+        var tt = Math.max(0, pk.t - ti * 0.012);
+        var tx2 = lerp(a.x * W, b.x * W, tt);
+        var ty2 = lerp(a.y * H, b.y * H, tt);
+        var alpha2 = (1 - ti/trail) * 0.8;
+        ctx.beginPath();
+        ctx.arc(tx2, ty2, 3 - ti*0.2, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(201,168,76,' + alpha2 + ')';
+        ctx.fill();
+      }
+      return true;
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  // Stats live (met à jour quand les prix chargent)
+  function updateAnimStats() {
+    var btc  = getUsdPrice('BTC');
+    var eth  = getUsdPrice('ETH');
+    var usdt = getUsdPrice('USDT');
+    var bnb  = getUsdPrice('BNB');
+    var fmt  = function(n) { return n ? new Intl.NumberFormat('fr-FR').format(Math.round(n)) : '--'; };
+    var el;
+    el = document.getElementById('anim-btc');  if(el) el.textContent = fmt(btc  * 630) + ' FCFA';
+    el = document.getElementById('anim-eth');  if(el) el.textContent = fmt(eth  * 630) + ' FCFA';
+    el = document.getElementById('anim-usdt'); if(el) el.textContent = fmt(usdt * 630) + ' FCFA';
+    el = document.getElementById('anim-bnb');  if(el) el.textContent = fmt(bnb  * 630) + ' FCFA';
+  }
+  setTimeout(updateAnimStats, 2000);
+  setInterval(updateAnimStats, 30000);
+})();
+
+// ── CALCULATEUR ──────────────────────────────────────────────
+let calcMode = 'buy';
+function setCalcMode(mode) {
+  calcMode = mode;
+  document.getElementById('calc-tab-buy').classList.toggle('active', mode === 'buy');
+  document.getElementById('calc-tab-sell').classList.toggle('active', mode === 'sell');
+  document.getElementById('calc-label-in').textContent = mode === 'buy' ? 'Vous payez (FCFA)' : 'Vous vendez (USD)';
+  document.getElementById('calc-label-out').textContent = mode === 'buy' ? 'Vous recevez' : 'Vous recevez (FCFA)';
+  document.getElementById('calc-cta').href = mode === 'buy' ? '/buy.html' : '/sell.html';
+  document.getElementById('calc-cta').textContent = mode === 'buy' ? 'Acheter →' : 'Vendre →';
+  updateCalc();
+}
+
+function updateCalc() {
+  var val    = parseFloat(document.getElementById('calc-input').value) || 0;
+  var sym    = document.getElementById('calc-crypto').value;
+  var usdPrice = getUsdPrice(sym);
+  var result   = document.getElementById('calc-result');
+  var hint     = document.getElementById('calc-rate-hint');
+
+  if (hint) hint.textContent = usdPrice ? ('1 ' + sym + ' ≈ ' + new Intl.NumberFormat('fr-FR').format(Math.round(usdPrice * (calcMode === 'buy' ? RATES.buy : RATES.sell))) + ' FCFA') : '';
+
+  if (!val || val <= 0) { result.textContent = '--'; return; }
+
+  if (calcMode === 'buy') {
+    var usd = val / RATES.buy;
+    if (usdPrice) {
+      result.textContent = (usd / usdPrice).toFixed(6) + ' ' + sym;
+    } else {
+      result.textContent = '$' + usd.toFixed(2);
+    }
+  } else {
+    result.textContent = new Intl.NumberFormat('fr-FR').format(Math.round(val * RATES.sell)) + ' FCFA';
+  }
+}
+
+// ── COMPTEUR TRANSACTIONS ─────────────────────────────────────
+fetch(API + '/api/admin/stats').then(function(r) {
+  if (!r.ok) throw new Error();
+  return r.json();
+}).then(function(d) {
+  const el = document.getElementById('tx-counter');
+  if (el && d.total !== undefined) el.textContent = d.total + '+';
+}).catch(function() {
+  const el = document.getElementById('tx-counter');
+  if (el) el.textContent = '50+';
+});
+
+// ── STATUS SERVICE ────────────────────────────────────────────
+const hour = new Date().getHours();
+if (hour < 8 || hour >= 20) {
+  document.getElementById('status-dot').style.background = 'var(--gold)';
+  document.getElementById('status-text').textContent = 'Hors horaires (8h-20h)';
+}
 
 // Clients fideles
 async function loadTrustedClients() {

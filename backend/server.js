@@ -159,17 +159,67 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
       status: 'pending', notes: '', created_at: now, updated_at: now
     });
 
-    const typeLabel = type === 'buy' ? 'Achat' : type === 'sell' ? 'Vente' : 'Echange';
+    const typeLabel  = type === 'buy' ? 'Achat de crypto' : type === 'sell' ? 'Vente de crypto' : 'Echange de crypto';
+    const typeEmoji  = type === 'buy' ? '💸' : type === 'sell' ? '💰' : '🔄';
+    const typeColor  = type === 'buy' ? '#C9A84C' : type === 'sell' ? '#2ecc71' : '#3498db';
+    const refCode    = '#' + id.slice(0,8).toUpperCase();
+    const dateStr    = new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Brazzaville', dateStyle: 'full', timeStyle: 'short' });
 
-    sendEmail(email, 'CongoSwap - Commande recue #' + id.slice(0,8),
-      '<div style="font-family:sans-serif;max-width:500px;margin:auto;background:#0d0d0d;color:#f0ede6;padding:32px;border-radius:8px;">' +
-      '<h2 style="color:#C9A84C;">CongoSwap</h2><p>Votre demande de <strong>' + typeLabel + '</strong> a bien ete recue.</p>' +
-      '<div style="background:#1c1c1c;padding:16px;border-radius:6px;margin:16px 0;">' +
-      '<p><strong>Reference :</strong> #' + id.slice(0,8).toUpperCase() + '</p>' +
-      '<p><strong>Type :</strong> ' + typeLabel + '</p>' +
-      (crypto ? '<p><strong>Crypto :</strong> ' + crypto + '</p>' : '') +
-      (amount_usd ? '<p><strong>Montant :</strong> $' + amount_usd + ' soit ' + amount_cfa + ' FCFA</p>' : '') +
-      '</div><p>Vous serez notifie par email des que votre transaction sera traitee.</p></div>'
+    const nextStepsBuy  = '<li style="margin:6px 0;color:#8a8578;">✅ Votre commande est <strong style="color:#f0ede6;">en cours de traitement</strong></li><li style="margin:6px 0;color:#8a8578;">⏱ Delai estimé : <strong style="color:#C9A84C;">30 min à 2 heures</strong></li><li style="margin:6px 0;color:#8a8578;">📨 Vous recevrez un email de confirmation dès l\'envoi de votre crypto</li><li style="margin:6px 0;color:#8a8578;">📱 En cas de question : WhatsApp +242 06 114 9792</li>';
+    const nextStepsSell = '<li style="margin:6px 0;color:#8a8578;">✅ Votre demande est <strong style="color:#f0ede6;">en cours de verification</strong></li><li style="margin:6px 0;color:#8a8578;">⏱ Vos FCFA seront envoyés sous <strong style="color:#2ecc71;">2 heures</strong></li><li style="margin:6px 0;color:#8a8578;">📲 Vous recevrez le virement sur votre Mobile Money</li><li style="margin:6px 0;color:#8a8578;">📱 En cas de question : WhatsApp +242 06 114 9792</li>';
+    const nextStepsExch = '<li style="margin:6px 0;color:#8a8578;">✅ Votre echange est <strong style="color:#f0ede6;">en cours de traitement</strong></li><li style="margin:6px 0;color:#8a8578;">⏱ Delai estimé : <strong style="color:#3498db;">2 à 24 heures</strong></li><li style="margin:6px 0;color:#8a8578;">📨 Confirmation par email dès l\'envoi de votre crypto</li><li style="margin:6px 0;color:#8a8578;">📱 En cas de question : WhatsApp +242 06 114 9792</li>';
+    const nextSteps = type === 'buy' ? nextStepsBuy : type === 'sell' ? nextStepsSell : nextStepsExch;
+
+    sendEmail(email, typeEmoji + ' CongoSwap — ' + typeLabel + ' recu ' + refCode,
+      '<div style="color:#f0ede6;">' +
+
+      // Titre
+      '<h2 style="color:#f0ede6;font-size:22px;margin:0 0 4px;">' + typeEmoji + ' ' + typeLabel + '</h2>' +
+      '<p style="color:#8a8578;margin:0 0 24px;font-size:13px;">Votre demande a bien ete enregistree.</p>' +
+
+      // Ref + date
+      '<table width="100%" style="background:#1a1a1a;border-radius:4px;margin-bottom:20px;" cellpadding="0" cellspacing="0"><tr>' +
+      '<td style="padding:16px 20px;border-right:1px solid #2a2a2a;width:50%;">' +
+      '<div style="font-size:11px;color:#8a8578;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">Reference</div>' +
+      '<div style="font-family:monospace;font-size:18px;font-weight:700;color:#C9A84C;">' + refCode + '</div>' +
+      '</td><td style="padding:16px 20px;">' +
+      '<div style="font-size:11px;color:#8a8578;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;">Date</div>' +
+      '<div style="font-size:13px;color:#f0ede6;">' + dateStr + '</div>' +
+      '</td></tr></table>' +
+
+      // Details transaction
+      '<div style="background:#161616;border:1px solid #2a2a2a;border-left:3px solid ' + typeColor + ';padding:20px;margin-bottom:20px;border-radius:2px;">' +
+      '<div style="font-size:12px;font-weight:700;color:' + typeColor + ';letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;">Détails de la transaction</div>' +
+      '<table width="100%" cellpadding="0" cellspacing="0">' +
+      (type !== 'exchange' ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;width:40%;">Cryptomonnaie</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;font-weight:600;">' + (crypto || '--') + '</td></tr>' : '') +
+      (type !== 'exchange' ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Réseau</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;">' + (network || '--') + '</td></tr>' : '') +
+      (type === 'exchange' ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Vous envoyez</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;font-weight:600;">' + exchange_from + ' (' + exchange_network_from + ')</td></tr>' : '') +
+      (type === 'exchange' ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Vous recevez</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;font-weight:600;">' + exchange_to + ' (' + exchange_network_to + ')</td></tr>' : '') +
+      (amount_usd ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Montant USD</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;font-weight:600;">$' + amount_usd + '</td></tr>' : '') +
+      (amount_cfa ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Montant FCFA</td><td style="padding:6px 0;color:' + typeColor + ';font-size:16px;font-weight:800;">' + new Intl.NumberFormat('fr-FR').format(amount_cfa) + ' FCFA</td></tr>' : '') +
+      (wallet_address ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">' + (type === 'buy' ? 'Votre wallet' : 'Wallet source') + '</td><td style="padding:6px 0;color:#f0ede6;font-size:11px;font-family:monospace;word-break:break-all;">' + wallet_address + '</td></tr>' : '') +
+      (phone ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Mobile Money</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;">' + phone + '</td></tr>' : '') +
+      '</table></div>' +
+
+      // Prochaines étapes
+      '<div style="background:#161616;border:1px solid #2a2a2a;padding:20px;margin-bottom:20px;border-radius:2px;">' +
+      '<div style="font-size:12px;font-weight:700;color:#f0ede6;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;">Prochaines étapes</div>' +
+      '<ul style="margin:0;padding-left:16px;">' + nextSteps + '</ul>' +
+      '</div>' +
+
+      // Taux rappel
+      '<div style="background:#111;border:1px solid #1a1a1a;padding:16px 20px;margin-bottom:20px;border-radius:2px;display:flex;gap:24px;">' +
+      '<div><div style="font-size:11px;color:#8a8578;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Taux achat</div><div style="color:#C9A84C;font-weight:700;font-size:15px;">630 FCFA/$</div></div>' +
+      '<div style="border-left:1px solid #2a2a2a;padding-left:24px;"><div style="font-size:11px;color:#8a8578;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Taux vente</div><div style="color:#2ecc71;font-weight:700;font-size:15px;">575 FCFA/$</div></div>' +
+      '<div style="border-left:1px solid #2a2a2a;padding-left:24px;"><div style="font-size:11px;color:#8a8578;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Abonnements</div><div style="color:#e74c3c;font-weight:700;font-size:15px;">700 FCFA/$</div></div>' +
+      '</div>' +
+
+      // CTA
+      '<div style="text-align:center;margin-bottom:8px;">' +
+      '<a href="https://congoswap.onrender.com/waiting.html?id=' + id + '" style="background:#C9A84C;color:#0a0a0a;text-decoration:none;font-weight:800;font-size:14px;padding:14px 32px;display:inline-block;letter-spacing:0.06em;border-radius:2px;">SUIVRE MA COMMANDE →</a>' +
+      '</div>' +
+
+      '</div>'
     ).catch(function(e) { console.error('Email erreur:', e.message); });
 
     // Email notification admin
