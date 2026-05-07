@@ -17,10 +17,25 @@ const PORT = process.env.PORT || 3000;
 const DEFAULT_RATES = { buy: 630, sell: 575, exchange: 2, payment: 700 };
 const OTP_PURPOSES = new Set(['history', 'referral']);
 const uploadsDir = path.join(__dirname, 'uploads');
+const frontendDir = path.join(__dirname, '../frontend');
 const allowedOrigins = (process.env.CORS_ORIGIN || '')
   .split(',')
   .map(function(origin) { return origin.trim(); })
   .filter(Boolean);
+const PAGE_ROUTES = {
+  '/': 'index.html',
+  '/buy': 'buy.html',
+  '/sell': 'sell.html',
+  '/exchange': 'exchange.html',
+  '/payment': 'payment.html',
+  '/parrainage': 'parrainage.html',
+  '/historique': 'historique.html',
+  '/contact': 'contact.html',
+  '/legal': 'legal.html',
+  '/status': 'status.html',
+  '/waiting': 'waiting.html',
+  '/admin': 'admin.html'
+};
 
 function getJwtSecret() {
   return process.env.JWT_SECRET;
@@ -45,7 +60,17 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '../frontend')));
+
+app.use(function(req, res, next) {
+  const cleanPath = req.path === '/index.html' ? '/' : req.path.replace(/\.html$/, '');
+  if (req.path !== cleanPath && PAGE_ROUTES[cleanPath]) {
+    const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+    return res.redirect(301, cleanPath + query);
+  }
+  return next();
+});
+
+app.use(express.static(frontendDir));
 
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
@@ -356,7 +381,7 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
 
       // CTA
       '<div style="text-align:center;margin-bottom:8px;">' +
-      '<a href="https://congoswap.onrender.com/waiting.html?id=' + id + '" style="background:#C9A84C;color:#0a0a0a;text-decoration:none;font-weight:800;font-size:14px;padding:14px 32px;display:inline-block;letter-spacing:0.06em;border-radius:2px;">SUIVRE MA COMMANDE →</a>' +
+      '<a href="https://congoswap.onrender.com/waiting?id=' + id + '" style="background:#C9A84C;color:#0a0a0a;text-decoration:none;font-weight:800;font-size:14px;padding:14px 32px;display:inline-block;letter-spacing:0.06em;border-radius:2px;">SUIVRE MA COMMANDE →</a>' +
       '</div>' +
 
       '</div>'
@@ -376,7 +401,7 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
       (amountUsd ? '<p><strong>Montant :</strong> $' + amountUsd + ' soit ' + amountCfa + ' FCFA</p>' : '') +
       '<p><strong>Wallet client :</strong> ' + (walletAddress || 'N/A') + '</p>' +
       '</div>' +
-      '<a href="https://congoswap.onrender.com/admin.html" style="background:#C9A84C;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;display:inline-block;margin-top:8px;">Voir dans l\'admin</a>' +
+      '<a href="https://congoswap.onrender.com/admin" style="background:#C9A84C;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;display:inline-block;margin-top:8px;">Voir dans l\'admin</a>' +
       '</div>'
     ).catch(function(e) { console.error('Email admin erreur:', e.message); });
 
@@ -552,7 +577,7 @@ app.post('/api/payments', upload.single('screenshot'), async (req, res) => {
       '<p><strong>Montant :</strong> $' + amountUsd + ' = ' + amountCfa + ' FCFA</p>' +
       (note ? '<p><strong>Note :</strong> ' + note + '</p>' : '') +
       '</div>' +
-      '<a href="https://congoswap.onrender.com/admin.html" style="background:#C9A84C;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;display:inline-block;">Voir dans l\'admin</a>' +
+      '<a href="https://congoswap.onrender.com/admin" style="background:#C9A84C;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;display:inline-block;">Voir dans l\'admin</a>' +
       '</div>'
     ).catch(function(e) { console.error('Email admin erreur:', e.message); });
 
@@ -781,8 +806,16 @@ app.get('/api/rates', async (req, res) => {
   res.json(await loadRates());
 });
 
+Object.entries(PAGE_ROUTES).forEach(function(entry) {
+  const route = entry[0];
+  const file = entry[1];
+  app.get(route, function(req, res) {
+    res.sendFile(path.join(frontendDir, file));
+  });
+});
+
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  res.sendFile(path.join(frontendDir, 'index.html'));
 });
 
 // ─── TELEGRAM WEBHOOK ─────────────────────────────────────────

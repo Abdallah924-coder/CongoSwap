@@ -222,9 +222,9 @@
       <h1 class="anim-up-2">Échangez vos <em>cryptos</em><br>contre des <em>FCFA</em><br>sans arnaque</h1>
       <p class="hero-lead anim-up-3">CongoSwap est la plateforme locale de confiance pour acheter, vendre et échanger vos cryptomonnaies en République du Congo. Fini les étrangers arnaqueurs.</p>
       <div class="hero-cta anim-up-3">
-        <a href="buy.html" class="btn btn-gold">Acheter des cryptos</a>
-        <a href="sell.html" class="btn btn-outline">Vendre mes cryptos</a>
-        <a href="exchange.html" class="btn btn-outline">Échanger</a>
+        <a href="/buy" class="btn btn-gold">Acheter des cryptos</a>
+        <a href="/sell" class="btn btn-outline">Vendre mes cryptos</a>
+        <a href="/exchange" class="btn btn-outline">Échanger</a>
         <button id="pwa-install-btn" style="display:none;background:rgba(201,168,76,.15);border:1px solid var(--gold-dim);color:var(--gold);padding:12px 24px;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">
           📲 Installer l'application
         </button>
@@ -286,7 +286,7 @@
         </div>
         <div>
           <div style="font-size:.72rem;color:transparent;margin-bottom:6px;">-</div>
-          <a id="calc-cta" href="/buy.html" class="btn btn-gold calc-cta-btn" style="display:block;padding:12px 20px;text-align:center;white-space:nowrap;font-size:.82rem;">Commencer →</a>
+          <a id="calc-cta" href="/buy" class="btn btn-gold calc-cta-btn" style="display:block;padding:12px 20px;text-align:center;white-space:nowrap;font-size:.82rem;">Commencer →</a>
         </div>
       </div>
 
@@ -483,8 +483,8 @@
     <h2>Prêt à faire votre premier échange ?</h2>
     <p>Rejoignez les Congolais qui font confiance à CongoSwap pour leurs transactions crypto.</p>
     <div class="cta-btns">
-      <a href="buy.html" class="btn btn-gold">Acheter maintenant</a>
-      <a href="sell.html" class="btn btn-outline">Vendre mes cryptos</a>
+      <a href="/buy" class="btn btn-gold">Acheter maintenant</a>
+      <a href="/sell" class="btn btn-outline">Vendre mes cryptos</a>
     </div>
   </div>
 
@@ -769,7 +769,7 @@ function setCalcMode(mode) {
   document.getElementById('calc-tab-sell').classList.toggle('active', mode === 'sell');
   document.getElementById('calc-label-in').textContent = mode === 'buy' ? 'Vous payez (FCFA)' : 'Vous vendez (USD)';
   document.getElementById('calc-label-out').textContent = mode === 'buy' ? 'Vous recevez' : 'Vous recevez (FCFA)';
-  document.getElementById('calc-cta').href = mode === 'buy' ? '/buy.html' : '/sell.html';
+  document.getElementById('calc-cta').href = mode === 'buy' ? '/buy' : '/sell';
   document.getElementById('calc-cta').textContent = mode === 'buy' ? 'Acheter →' : 'Vendre →';
   updateCalc();
 }

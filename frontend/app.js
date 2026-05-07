@@ -90,43 +90,43 @@ function formatUSD(n) {
 // ─── NAV ──────────────────────────────────────────────────────
 function buildNavHTML(activePage) {
   return '<nav>' +
-    '<a class="logo" href="/index.html">Congo<span>Swap</span></a>' +
+    '<a class="logo" href="/">Congo<span>Swap</span></a>' +
     '<ul>' +
-    '<li><a href="/index.html" class="' + (activePage==='home'?'active':'') + '">Accueil</a></li>' +
-    '<li><a href="/buy.html" class="' + (activePage==='buy'?'active':'') + '">Acheter</a></li>' +
-    '<li><a href="/sell.html" class="' + (activePage==='sell'?'active':'') + '">Vendre</a></li>' +
-    '<li><a href="/exchange.html" class="' + (activePage==='exchange'?'active':'') + '">Echanger</a></li>' +
-    '<li><a href="/payment.html" class="' + (activePage==='payment'?'active':'') + '">Abonnements</a></li>' +
-    '<li><a href="/parrainage.html" class="' + (activePage==='parrainage'?'active':'') + '">Parrainage</a></li>' +
-    '<li><a href="/historique.html" class="' + (activePage==='historique'?'active':'') + '">Mes transactions</a></li>' +
-    '<li><a href="/contact.html" class="' + (activePage==='contact'?'active':'') + '">Contact</a></li>' +
-    '<li><a href="/buy.html" class="nav-cta btn">Commencer</a></li>' +
+    '<li><a href="/" class="' + (activePage==='home'?'active':'') + '">Accueil</a></li>' +
+    '<li><a href="/buy" class="' + (activePage==='buy'?'active':'') + '">Acheter</a></li>' +
+    '<li><a href="/sell" class="' + (activePage==='sell'?'active':'') + '">Vendre</a></li>' +
+    '<li><a href="/exchange" class="' + (activePage==='exchange'?'active':'') + '">Echanger</a></li>' +
+    '<li><a href="/payment" class="' + (activePage==='payment'?'active':'') + '">Abonnements</a></li>' +
+    '<li><a href="/parrainage" class="' + (activePage==='parrainage'?'active':'') + '">Parrainage</a></li>' +
+    '<li><a href="/historique" class="' + (activePage==='historique'?'active':'') + '">Mes transactions</a></li>' +
+    '<li><a href="/contact" class="' + (activePage==='contact'?'active':'') + '">Contact</a></li>' +
+    '<li><a href="/buy" class="nav-cta btn">Commencer</a></li>' +
     '</ul>' +
     '<button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>' +
     '</nav>' +
     '<div class="nav-drawer" id="nav-drawer">' +
-    '<a href="/index.html">Accueil</a>' +
-    '<a href="/buy.html">💸 Acheter des cryptos</a>' +
-    '<a href="/sell.html">💰 Vendre mes cryptos</a>' +
-    '<a href="/exchange.html">🔄 Echanger</a>' +
-    '<a href="/payment.html">💳 Abonnements</a>' +
-    '<a href="/parrainage.html">🎁 Parrainage</a>' +
-    '<a href="/historique.html">📋 Mes transactions</a>' +
-    '<a href="/contact.html">💬 Contact & FAQ</a>' +
-    '<a href="/buy.html" class="nav-drawer-cta">Commencer maintenant</a>' +
+    '<a href="/">Accueil</a>' +
+    '<a href="/buy">💸 Acheter des cryptos</a>' +
+    '<a href="/sell">💰 Vendre mes cryptos</a>' +
+    '<a href="/exchange">🔄 Echanger</a>' +
+    '<a href="/payment">💳 Abonnements</a>' +
+    '<a href="/parrainage">🎁 Parrainage</a>' +
+    '<a href="/historique">📋 Mes transactions</a>' +
+    '<a href="/contact">💬 Contact & FAQ</a>' +
+    '<a href="/buy" class="nav-drawer-cta">Commencer maintenant</a>' +
     '</div>';
 }
 
 function buildFooterHTML() {
   return '<footer>' +
-    '<a class="logo" href="/index.html">Congo<span>Swap</span></a>' +
+    '<a class="logo" href="/">Congo<span>Swap</span></a>' +
     '<p>© ' + new Date().getFullYear() + ' CongoSwap · République du Congo</p>' +
     '<p>Les prix sont indicatifs et mis à jour en temps réel.</p>' +
     '<p style="margin-top:8px;font-size:.78rem;">' +
-    '<a href="/legal.html" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Conditions</a>·' +
-    '<a href="/legal.html?tab=privacy" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Confidentialité</a>·' +
-    '<a href="/contact.html" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Contact</a>·' +
-    '<a href="/status.html" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Statut</a>' +
+    '<a href="/legal" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Conditions</a>·' +
+    '<a href="/legal?tab=privacy" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Confidentialité</a>·' +
+    '<a href="/contact" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Contact</a>·' +
+    '<a href="/status" style="color:var(--text-dim);text-decoration:none;margin:0 8px;">Statut</a>' +
     '</p>' +
     '</footer>';
 }
@@ -176,7 +176,7 @@ function setLoading(btn, loading) {
 }
 
 function goToWaiting(orderId) {
-  window.location.href = '/waiting.html?id=' + orderId;
+  window.location.href = '/waiting?id=' + orderId;
 }
 
 function copyText(text) {

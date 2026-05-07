@@ -150,7 +150,7 @@ function renderHistory(data, email) {
   document.getElementById('tx-list').innerHTML = orders.map(function(o) {
     const date = new Date(o.created_at).toLocaleDateString('fr-FR') + ' ' +
                  new Date(o.created_at).toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
-    return '<a href="/waiting.html?id=' + o.id + '" style="text-decoration:none;display:block;">' +
+    return '<a href="/waiting?id=' + o.id + '" style="text-decoration:none;display:block;">' +
       '<div class="tx-item">' +
         '<div>' +
           '<div class="tx-ref">#' + o.id.slice(0,8).toUpperCase() + '</div>' +
