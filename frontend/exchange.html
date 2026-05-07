@@ -183,6 +183,7 @@
 <script>
 document.getElementById('nav-placeholder').innerHTML = buildNavHTML('exchange');
 document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+if (window.initNavDrawer) window.initNavDrawer();
 
 const fromSel = document.getElementById('exchange_from');
 const toSel = document.getElementById('exchange_to');
@@ -245,7 +246,7 @@ function updateSummary() {
   document.getElementById('confirm-box').classList.add('visible');
 }
 
-loadPrices().then(updateSummary);
+Promise.all([loadRates(), loadPrices()]).then(updateSummary);
 
 document.getElementById('exchangeForm').addEventListener('submit', async function(e) {
   e.preventDefault();

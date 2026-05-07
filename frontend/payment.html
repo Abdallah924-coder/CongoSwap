@@ -186,8 +186,8 @@
 <script>
 document.getElementById('nav-placeholder').innerHTML = buildNavHTML('payment');
 document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
-
-const RATE = 700;
+if (window.initNavDrawer) window.initNavDrawer();
+loadRates();
 
 // Plans par service (prix en $ par mois)
 const PLANS = {
@@ -202,8 +202,8 @@ const PLANS = {
     { name: 'Premium Famille', sub: 'Jusqu\'a 6 comptes',             price: 17 },
   ],
   ChatGPT: [
-    { name: 'ChatGPT Plus',  sub: 'GPT-4o · Acces prioritaire',   price: 20 },
-    { name: 'ChatGPT Pro',   sub: 'Usage illimite · o1 Pro',       price: 200 },
+    { name: 'ChatGPT Plus',  sub: 'Acces prioritaire · usage personnel',   price: 20 },
+    { name: 'ChatGPT Pro',   sub: 'Usage avance · capacite etendue',       price: 200 },
   ],
   YouTube: [
     { name: 'Premium Solo',    sub: 'Sans pub · YouTube Music',      price: 14 },
@@ -259,7 +259,7 @@ function renderPlans(service) {
   const plans = PLANS[service] || [];
   const list  = document.getElementById('plans-list');
   list.innerHTML = plans.map(function(p, i) {
-    const fcfa = new Intl.NumberFormat('fr-FR').format(Math.round(p.price * RATE));
+    const fcfa = new Intl.NumberFormat('fr-FR').format(Math.round(p.price * RATES.payment));
     return '<div class="plan-card" data-index="' + i + '">' +
       '<div><div class="plan-name">' + p.name + '</div><div class="plan-sub">' + p.sub + '</div></div>' +
       '<div class="plan-price"><div class="plan-usd">$' + p.price + '/mois</div><div class="plan-fcfa">' + fcfa + ' FCFA</div></div>' +
@@ -293,7 +293,7 @@ function updateSummary() {
   const baseUsd    = selectedPlan.price * selectedMonths;
   const discount   = getDiscount(selectedMonths);
   const finalUsd   = baseUsd * (1 - discount);
-  const finalFcfa  = Math.round(finalUsd * RATE);
+  const finalFcfa  = Math.round(finalUsd * RATES.payment);
   const fcfaStr    = new Intl.NumberFormat('fr-FR').format(finalFcfa);
   const monthLabel = selectedMonths === 1 ? '1 mois' : selectedMonths + ' mois';
 
@@ -301,7 +301,7 @@ function updateSummary() {
     selectedService + ' · ' + selectedPlan.name + ' · ' + monthLabel +
     (discount > 0 ? ' (-' + (discount*100) + '%)' : '');
   document.getElementById('summary-fcfa').textContent = fcfaStr + ' FCFA';
-  document.getElementById('summary-usd').textContent  = '$' + finalUsd.toFixed(2) + ' au taux de 700 FCFA/$';
+  document.getElementById('summary-usd').textContent  = '$' + finalUsd.toFixed(2) + ' au taux de ' + RATES.payment + ' FCFA/$';
   summary.classList.add('visible');
 }
 
@@ -329,7 +329,7 @@ document.getElementById('payForm').addEventListener('submit', async function(e) 
   if (!selectedPlan)    { alertEl.className = 'alert error'; alertEl.textContent = 'Choisissez un plan.'; return; }
 
   const finalUsd  = selectedPlan.price * selectedMonths * (1 - getDiscount(selectedMonths));
-  const finalFcfa = Math.round(finalUsd * RATE);
+  const finalFcfa = Math.round(finalUsd * RATES.payment);
 
   const formData = new FormData();
   formData.append('type',       'payment');

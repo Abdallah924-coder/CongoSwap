@@ -230,8 +230,8 @@
         </button>
       </div>
       <div class="hero-stats anim-up-3">
-        <div class="stat"><div class="stat-num">630</div><div class="stat-label">FCFA / $ à l'achat</div></div>
-        <div class="stat"><div class="stat-num">575</div><div class="stat-label">FCFA / $ à la vente</div></div>
+        <div class="stat"><div class="stat-num" id="hero-buy-rate">--</div><div class="stat-label">FCFA / $ à l'achat</div></div>
+        <div class="stat"><div class="stat-num" id="hero-sell-rate">--</div><div class="stat-label">FCFA / $ à la vente</div></div>
         <div class="stat"><div class="stat-num" id="tx-counter">--</div><div class="stat-label">Transactions</div></div>
         <div class="stat"><div class="stat-num">&lt;2h</div><div class="stat-label">Délai de traitement</div></div>
       </div>
@@ -246,7 +246,7 @@
     <div class="crypto-anim-header">
       <span class="section-tag" style="margin-bottom:8px;">Live</span>
       <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;margin:0 0 4px;">Marché en temps réel</h2>
-      <p style="color:var(--text-dim);font-size:.84rem;margin:0;">Transactions en cours sur CongoSwap</p>
+      <p style="color:var(--text-dim);font-size:.84rem;margin:0;">Cours indicatifs convertis en FCFA</p>
     </div>
     <canvas id="cryptoCanvas"></canvas>
     <div class="anim-overlay">
@@ -310,7 +310,7 @@
   <section class="section prices-section">
     <span class="section-tag">Taux en temps réel</span>
     <h2 class="section-title">Prix du marché aujourd'hui</h2>
-    <p class="section-sub">Mis à jour toutes les minutes. Les prix d'achat incluent notre taux de change de 630 FCFA/$.</p>
+    <p class="section-sub" id="market-rate-copy">Mis à jour toutes les minutes.</p>
     <div class="prices-grid" id="prices-grid">
       <div style="color:var(--text-dim);padding:20px">Chargement des prix...</div>
     </div>
@@ -324,12 +324,12 @@
     <div class="rates-explain">
       <div class="rate-box">
         <h3>💸 Vous achetez</h3>
-        <div class="rate-big">630 FCFA</div>
+        <div class="rate-big" id="rate-box-buy">--</div>
         <p>par dollar américain. Vous payez en Mobile Money ou virement, nous vous envoyons la crypto.</p>
       </div>
       <div class="rate-box">
         <h3>💰 Vous vendez</h3>
-        <div class="rate-big">575 FCFA</div>
+        <div class="rate-big" id="rate-box-sell">--</div>
         <p>par dollar américain. Vous nous envoyez la crypto, nous vous versons les FCFA sur votre compte.</p>
       </div>
     </div>
@@ -533,9 +533,16 @@
 <script>
 document.getElementById('nav-placeholder').innerHTML = buildNavHTML('home');
 document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+if (window.initNavDrawer) window.initNavDrawer();
 
 async function initHomepage() {
+  await loadRates();
   await loadPrices();
+  document.getElementById('hero-buy-rate').textContent = String(RATES.buy);
+  document.getElementById('hero-sell-rate').textContent = String(RATES.sell);
+  document.getElementById('market-rate-copy').textContent = 'Mis à jour toutes les minutes. Les prix d\'achat incluent notre taux de change de ' + RATES.buy + ' FCFA/$.';
+  document.getElementById('rate-box-buy').textContent = RATES.buy + ' FCFA';
+  document.getElementById('rate-box-sell').textContent = RATES.sell + ' FCFA';
 
   // Ticker
   document.getElementById('ticker-content').innerHTML = buildTicker();
@@ -745,10 +752,10 @@ initHomepage();
     var bnb  = getUsdPrice('BNB');
     var fmt  = function(n) { return n ? new Intl.NumberFormat('fr-FR').format(Math.round(n)) : '--'; };
     var el;
-    el = document.getElementById('anim-btc');  if(el) el.textContent = fmt(btc  * 630) + ' FCFA';
-    el = document.getElementById('anim-eth');  if(el) el.textContent = fmt(eth  * 630) + ' FCFA';
-    el = document.getElementById('anim-usdt'); if(el) el.textContent = fmt(usdt * 630) + ' FCFA';
-    el = document.getElementById('anim-bnb');  if(el) el.textContent = fmt(bnb  * 630) + ' FCFA';
+    el = document.getElementById('anim-btc');  if(el) el.textContent = fmt(btc  * RATES.buy) + ' FCFA';
+    el = document.getElementById('anim-eth');  if(el) el.textContent = fmt(eth  * RATES.buy) + ' FCFA';
+    el = document.getElementById('anim-usdt'); if(el) el.textContent = fmt(usdt * RATES.buy) + ' FCFA';
+    el = document.getElementById('anim-bnb');  if(el) el.textContent = fmt(bnb  * RATES.buy) + ' FCFA';
   }
   setTimeout(updateAnimStats, 2000);
   setInterval(updateAnimStats, 30000);
@@ -791,7 +798,7 @@ function updateCalc() {
 }
 
 // ── COMPTEUR TRANSACTIONS ─────────────────────────────────────
-fetch(API + '/api/admin/stats').then(function(r) {
+fetch(API + '/api/public-stats').then(function(r) {
   if (!r.ok) throw new Error();
   return r.json();
 }).then(function(d) {

@@ -106,6 +106,7 @@
 <script>
 document.getElementById('nav-placeholder').innerHTML = buildNavHTML('');
 document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+if (window.initNavDrawer) window.initNavDrawer();
 
 // Auto-fill depuis URL si ref existe
 const urlParams = new URLSearchParams(window.location.search);
@@ -151,11 +152,18 @@ function shareWhatsApp() {
 
 async function loadStats(email) {
   try {
-    const r    = await fetch(API + '/api/referral-stats?email=' + encodeURIComponent(email));
-    const data = await r.json();
-    document.getElementById('stat-total').textContent     = data.total || 0;
-    document.getElementById('stat-validated').textContent = data.validated || 0;
-    document.getElementById('stat-bonus').textContent     = '$' + (data.validated || 0);
+    showOTPModal(email, async function(token) {
+      try {
+        const r = await fetch(API + '/api/referral-stats?email=' + encodeURIComponent(email), {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'Erreur');
+        document.getElementById('stat-total').textContent     = data.total || 0;
+        document.getElementById('stat-validated').textContent = data.validated || 0;
+        document.getElementById('stat-bonus').textContent     = '$' + (data.validated || 0);
+      } catch(e) {}
+    }, 'referral');
   } catch(e) {}
 }
 

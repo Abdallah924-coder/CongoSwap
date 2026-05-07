@@ -83,6 +83,13 @@ function getUsdPrice(prices, sym) {
   return prices[map[sym]]?.usd || 0;
 }
 
+async function refreshRates() {
+  try {
+    const doc = await dbConn.collection('config').findOne({ key: 'rates' });
+    if (doc && doc.value) Object.assign(RATES, doc.value);
+  } catch(e) {}
+}
+
 async function notifyAdmin(text) {
   try { await bot.sendMessage(ADMIN_ID, text, { parse_mode: 'HTML' }); } catch(e) {}
 }
@@ -171,9 +178,9 @@ async function sendWelcome(chatId, name) {
     'Bonjour ' + (name || '') + ' 👋\n\n' +
     'Je suis votre assistant pour échanger vos cryptomonnaies en FCFA et commander vos abonnements internationaux.\n\n' +
     '📌 *Taux actuels :*\n' +
-    '• Achat crypto : 630 FCFA/$\n' +
-    '• Vente crypto : 575 FCFA/$\n' +
-    '• Abonnements : 700 FCFA/$\n\n' +
+    '• Achat crypto : ' + RATES.buy + ' FCFA/$\n' +
+    '• Vente crypto : ' + RATES.sell + ' FCFA/$\n' +
+    '• Abonnements : ' + RATES.payment + ' FCFA/$\n\n' +
     'Que voulez-vous faire ?' + adminInfo;
   await bot.sendMessage(chatId, text, { parse_mode: 'Markdown', ...MAIN_MENU });
 }
@@ -184,6 +191,8 @@ bot.on('message', async (msg) => {
   const text   = msg.text || '';
   const name   = msg.from.first_name || '';
   const sess   = getSession(chatId);
+
+  await refreshRates();
 
   // Retour / annulation
   if (text === '↩ Retour' || text === '❌ Annuler' || text === '/start') {
@@ -219,8 +228,9 @@ bot.on('message', async (msg) => {
       const prices = await getPrices();
       let msg2 = '📊 *Taux du jour — CongoSwap*\n\n';
       msg2 += '💱 *Taux de change :*\n';
-      msg2 += '• Achat : 630 FCFA / $1\n';
-      msg2 += '• Vente : 575 FCFA / $1\n\n';
+      msg2 += '• Achat : ' + RATES.buy + ' FCFA / $1\n';
+      msg2 += '• Vente : ' + RATES.sell + ' FCFA / $1\n';
+      msg2 += '• Abonnements : ' + RATES.payment + ' FCFA / $1\n\n';
       msg2 += '💎 *Prix des cryptos :*\n';
       for (const sym of CRYPTOS) {
         const usd = getUsdPrice(prices, sym);

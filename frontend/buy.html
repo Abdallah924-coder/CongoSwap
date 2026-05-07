@@ -62,7 +62,7 @@
 
       <div style="background:var(--dark3);border:1px solid var(--border);padding:20px;margin-bottom:28px;">
         <div style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;">Taux d'achat actuel</div>
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--gold)">630 <span style="font-size:1rem;font-weight:400">FCFA / $</span></div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--gold)"><span id="buy-rate-display">--</span> <span style="font-size:1rem;font-weight:400">FCFA / $</span></div>
         <div style="font-size:.8rem;color:var(--text-dim);margin-top:4px;">Prix crypto du marché + taux de change CongoSwap</div>
       </div>
 
@@ -85,8 +85,8 @@
           <div class="payment-row">
             <span class="payment-label">Numéro Mobile Money</span>
             <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span class="payment-val big">+242 06 932 59 37</span>
-              <button class="copy-btn" onclick="copyText('+242 06 932 59 37')">Copier</button>
+              <span class="payment-val big">+242 06 114 9792</span>
+              <button class="copy-btn" onclick="copyText('+242 06 114 9792')">Copier</button>
             </span>
           </div>
           <div class="payment-row">
@@ -216,6 +216,7 @@
 <script>
 document.getElementById('nav-placeholder').innerHTML = buildNavHTML('buy');
 document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+if (window.initNavDrawer) window.initNavDrawer();
 
 const cryptoSel = document.getElementById('crypto');
 const networkSel = document.getElementById('network');
@@ -287,7 +288,11 @@ function copyText(text) {
   navigator.clipboard.writeText(text).then(() => alert('Copié !'));
 }
 
-loadPrices().then(() => updateCFA());
+Promise.all([loadRates(), loadPrices()]).then(function() { updateCFA(); });
+loadRates().then(function() {
+  var rateEl = document.getElementById('buy-rate-display');
+  if (rateEl) rateEl.textContent = RATES.buy;
+});
 
 // FORM SUBMIT
 document.getElementById('buyForm').addEventListener('submit', async function(e) {

@@ -180,6 +180,7 @@
 <script>
 document.getElementById('nav-placeholder').innerHTML = buildNavHTML('sell');
 document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+if (window.initNavDrawer) window.initNavDrawer();
 
 const cryptoSel = document.getElementById('crypto');
 const networkSel = document.getElementById('network');
@@ -254,7 +255,7 @@ document.getElementById('screenshot').addEventListener('change', function() {
   }
 });
 
-loadPrices().then(() => { updateCFAReceive(); });
+Promise.all([loadRates(), loadPrices()]).then(function() { updateCFAReceive(); });
 
 document.getElementById('sellForm').addEventListener('submit', async function(e) {
   e.preventDefault();

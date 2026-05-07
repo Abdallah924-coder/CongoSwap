@@ -225,6 +225,10 @@
             <label>Frais d'échange (%)</label>
             <input type="number" id="rate-exchange" placeholder="2" min="0" max="10" step="0.1"/>
           </div>
+          <div class="form-group">
+            <label>Taux abonnements (FCFA par $1)</label>
+            <input type="number" id="rate-payment" placeholder="700" min="1"/>
+          </div>
           <button class="btn btn-gold" onclick="saveRates()" style="width:100%;">Enregistrer les taux</button>
           <div id="rates-alert" class="alert" style="margin-top:12px;"></div>
         </div>
@@ -242,6 +246,20 @@
 let authToken = localStorage.getItem('cs_admin_token');
 let currentStatusFilter = '';
 let currentTypeFilter = '';
+
+function escapeHtml(value) {
+  return String(value === undefined || value === null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeText(value, fallback) {
+  const text = String(value === undefined || value === null || value === '' ? (fallback || '') : value);
+  return escapeHtml(text);
+}
 
 // CHECK AUTH
 if (authToken) showAdmin();
@@ -404,9 +422,9 @@ function renderOrders(orders, containerId) {
           <tr>
             <td><span class="order-ref">#${o.id.slice(0,8).toUpperCase()}</span></td>
             <td>${typeLabel(o.type)}</td>
-            <td style="font-size:.82rem">${o.email}</td>
-            <td style="color:var(--gold);font-weight:600">${o.phone || '--'}</td>
-            <td><strong>${o.type === 'exchange' ? (o.exchange_from + ' → ' + o.exchange_to) : (o.crypto || '--')}</strong>${o.type === 'exchange' ? '<br><span style="font-size:.75rem;color:var(--text-dim);">' + (o.exchange_network_from || '') + ' → ' + (o.exchange_network_to || '') + '</span>' : ''}</td>
+            <td style="font-size:.82rem">${safeText(o.email, '--')}</td>
+            <td style="color:var(--gold);font-weight:600">${safeText(o.phone, '--')}</td>
+            <td><strong>${o.type === 'exchange' ? (safeText(o.exchange_from, '--') + ' → ' + safeText(o.exchange_to, '--')) : safeText(o.crypto, '--')}</strong>${o.type === 'exchange' ? '<br><span style="font-size:.75rem;color:var(--text-dim);">' + safeText(o.exchange_network_from, '') + ' → ' + safeText(o.exchange_network_to, '') + '</span>' : ''}</td>
             <td>${o.amount_usd ? '$' + o.amount_usd : '--'}</td>
             <td>${o.amount_cfa ? new Intl.NumberFormat('fr-FR').format(o.amount_cfa) + ' F' : '--'}</td>
             <td><span class="badge badge-${o.status}">${o.status === 'pending' ? 'En attente' : o.status === 'validated' ? 'Validée' : 'Refusée'}</span></td>
@@ -436,6 +454,7 @@ async function viewOrder(id) {
     const o = await r.json();
     const full = await (await authFetch(`${API}/api/admin/orders?`)).json();
     const order = full.orders?.find(x => x.id === id) || o;
+    const screenshotUrl = `${API}/api/admin/orders/${id}/screenshot?token=${encodeURIComponent(authToken)}`;
 
     panel.classList.add('open');
     panel.innerHTML = `
@@ -444,24 +463,24 @@ async function viewOrder(id) {
         <button onclick="document.getElementById('detail-panel').classList.remove('open')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem;">✕</button>
       </div>
       <div class="detail-grid">
-        <div class="detail-field"><label>Email</label><span>${order.email}</span></div>
-        <div class="detail-field"><label>Telephone</label><span style="color:var(--gold);font-size:1rem;">${order.phone || '--'}</span></div>
-        <div class="detail-field"><label>Type</label><span>${order.type === 'payment' ? 'Paiement international' : order.type}</span></div>
-        <div class="detail-field"><label>Crypto / Service</label><span>${order.type === 'payment' ? (order.service || '--') : order.type === 'exchange' ? (order.exchange_from + ' → ' + order.exchange_to) : (order.crypto || '--')}</span></div>
-        <div class="detail-field"><label>Réseau / Compte</label><span>${order.type === 'payment' ? (order.details || '--') : order.type === 'exchange' ? ((order.exchange_network_from || '--') + ' → ' + (order.exchange_network_to || '--')) : (order.network || '--')}</span></div>
-        ${order.type === 'payment' && order.note ? `<div class="detail-field" style="grid-column:1/-1;"><label>Note client</label><span>${order.note}</span></div>` : ''}
+        <div class="detail-field"><label>Email</label><span>${safeText(order.email, '--')}</span></div>
+        <div class="detail-field"><label>Telephone</label><span style="color:var(--gold);font-size:1rem;">${safeText(order.phone, '--')}</span></div>
+        <div class="detail-field"><label>Type</label><span>${safeText(order.type === 'payment' ? 'Paiement international' : order.type, '--')}</span></div>
+        <div class="detail-field"><label>Crypto / Service</label><span>${order.type === 'payment' ? safeText(order.service, '--') : order.type === 'exchange' ? (safeText(order.exchange_from, '--') + ' → ' + safeText(order.exchange_to, '--')) : safeText(order.crypto, '--')}</span></div>
+        <div class="detail-field"><label>Réseau / Compte</label><span>${order.type === 'payment' ? safeText(order.details, '--') : order.type === 'exchange' ? (safeText(order.exchange_network_from, '--') + ' → ' + safeText(order.exchange_network_to, '--')) : safeText(order.network, '--')}</span></div>
+        ${order.type === 'payment' && order.note ? `<div class="detail-field" style="grid-column:1/-1;"><label>Note client</label><span>${safeText(order.note)}</span></div>` : ''}
         <div class="detail-field"><label>Montant USD</label><span>${order.amount_usd ? '$' + order.amount_usd : '--'}</span></div>
         <div class="detail-field"><label>Montant FCFA</label><span>${order.amount_cfa ? new Intl.NumberFormat('fr-FR').format(order.amount_cfa) + ' FCFA' : '--'}</span></div>
-        <div class="detail-field"><label>Adresse wallet</label><span>${order.wallet_address || '--'}</span></div>
+        <div class="detail-field"><label>Adresse wallet</label><span>${safeText(order.wallet_address, '--')}</span></div>
         <div class="detail-field"><label>Statut</label><span class="badge badge-${order.status}">${order.status}</span></div>
         <div class="detail-field"><label>Date</label><span>${new Date(order.created_at).toLocaleString('fr-FR')}</span></div>
-        ${order.referrer ? `<div class="detail-field" style="grid-column:1/-1;border:1px solid var(--gold-dim);"><label style="color:var(--gold);">Parrainé par</label><span style="color:var(--gold);">${order.referrer}</span></div>` : ''}
+        ${order.referrer ? `<div class="detail-field" style="grid-column:1/-1;border:1px solid var(--gold-dim);"><label style="color:var(--gold);">Parrainé par</label><span style="color:var(--gold);">${safeText(order.referrer)}</span></div>` : ''}
       </div>
       ${order.screenshot_path ? `
         <div style="margin-top:16px;">
           <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Capture d'écran</div>
-          <img src="${API}${order.screenshot_path}" class="screenshot-img" alt="Capture"/>
-          <div style="margin-top:8px;"><a href="${API}${order.screenshot_path}" target="_blank" class="btn btn-outline" style="font-size:.78rem;padding:7px 14px;">Ouvrir en plein écran</a></div>
+          <img src="${screenshotUrl}" class="screenshot-img" alt="Capture"/>
+          <div style="margin-top:8px;"><a href="${screenshotUrl}" target="_blank" class="btn btn-outline" style="font-size:.78rem;padding:7px 14px;">Ouvrir en plein écran</a></div>
         </div>` : ''}
       <div style="margin-top:20px;">
         <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Note (envoyée par email si statut change)</div>
@@ -647,6 +666,7 @@ async function loadRates() {
     document.getElementById('rate-buy').value      = data.buy || 630;
     document.getElementById('rate-sell').value     = data.sell || 575;
     document.getElementById('rate-exchange').value = data.exchange || 2;
+    document.getElementById('rate-payment').value  = data.payment || 700;
   } catch(e) {}
 }
 
@@ -655,14 +675,15 @@ async function saveRates() {
   const buy      = parseFloat(document.getElementById('rate-buy').value);
   const sell     = parseFloat(document.getElementById('rate-sell').value);
   const exchange = parseFloat(document.getElementById('rate-exchange').value);
-  if (!buy || !sell || !exchange) {
+  const payment  = parseFloat(document.getElementById('rate-payment').value);
+  if (!buy || !sell || !exchange || !payment) {
     alertEl.className = 'alert error'; alertEl.textContent = 'Tous les champs sont requis.'; return;
   }
   try {
     await authFetch(`${API}/api/admin/rates`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ buy, sell, exchange })
+      body: JSON.stringify({ buy, sell, exchange, payment })
     });
     alertEl.className = 'alert'; alertEl.style.background = 'rgba(46,204,113,.1)'; alertEl.style.color = 'var(--green)';
     alertEl.textContent = 'Taux mis a jour !';

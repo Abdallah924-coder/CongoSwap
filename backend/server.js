@@ -4,6 +4,7 @@ const cors       = require('cors');
 const path       = require('path');
 const multer     = require('multer');
 const fetch      = require('node-fetch');
+const crypto     = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt     = require('bcryptjs');
 const jwt        = require('jsonwebtoken');
@@ -13,20 +14,142 @@ const { sendEmail, sendTelegram } = require('./utils.js');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+const DEFAULT_RATES = { buy: 630, sell: 575, exchange: 2, payment: 700 };
+const OTP_PURPOSES = new Set(['history', 'referral']);
+const uploadsDir = path.join(__dirname, 'uploads');
+const allowedOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map(function(origin) { return origin.trim(); })
+  .filter(Boolean);
 
-app.use(cors({ origin: '*' }));
+function getJwtSecret() {
+  return process.env.JWT_SECRET;
+}
+
+function requireEnvVars() {
+  const required = ['MONGODB_URI', 'JWT_SECRET', 'ADMIN_PASSWORD'];
+  if (process.env.TELEGRAM_BOT_TOKEN) required.push('TELEGRAM_WEBHOOK_SECRET');
+  const missing = required.filter(function(name) { return !process.env[name]; });
+  if (missing.length) {
+    throw new Error('Variables d’environnement manquantes: ' + missing.join(', '));
+  }
+}
+
+requireEnvVars();
+
+app.use(cors({
+  origin: function(origin, cb) {
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error('Origine non autorisee'));
+  }
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+function cleanText(value, maxLen) {
+  if (value === undefined || value === null) return '';
+  const normalized = String(value).replace(/[<>]/g, '').trim();
+  return maxLen ? normalized.slice(0, maxLen) : normalized;
+}
+
+function normalizeEmail(value) {
+  return cleanText(value, 160).toLowerCase();
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function buildAccessToken(email, purpose) {
+  return jwt.sign({ email, purpose }, getJwtSecret(), { expiresIn: '15m' });
+}
+
+function getBearerToken(req) {
+  const auth = req.headers.authorization || '';
+  if (!auth.startsWith('Bearer ')) return '';
+  return auth.slice(7);
+}
+
+function getRequestToken(req) {
+  return getBearerToken(req) || cleanText(req.query.token, 500);
+}
+
+function verifyScopedToken(req, email, purpose) {
+  const token = getRequestToken(req);
+  if (!token) return false;
+  try {
+    const payload = jwt.verify(token, getJwtSecret());
+    return payload.email === email && payload.purpose === purpose;
+  } catch {
+    return false;
+  }
+}
+
+function getRateValue(rates, key) {
+  const value = Number(rates && rates[key]);
+  return Number.isFinite(value) && value > 0 ? value : DEFAULT_RATES[key];
+}
+
+async function loadRates() {
+  try {
+    const doc = await dbConn.collection('config').findOne({ key: 'rates' });
+    return doc && doc.value ? { ...DEFAULT_RATES, ...doc.value } : { ...DEFAULT_RATES };
+  } catch {
+    return { ...DEFAULT_RATES };
+  }
+}
+
+async function saveRates(rates) {
+  const next = {
+    buy: getRateValue(rates, 'buy'),
+    sell: getRateValue(rates, 'sell'),
+    exchange: getRateValue(rates, 'exchange'),
+    payment: getRateValue(rates, 'payment')
+  };
+  await dbConn.collection('config').updateOne(
+    { key: 'rates' },
+    { $set: { key: 'rates', value: next } },
+    { upsert: true }
+  );
+  return next;
+}
+
+function publicOrderView(order) {
+  return {
+    id: order.id,
+    type: order.type,
+    status: order.status,
+    crypto: order.crypto,
+    exchange_from: order.exchange_from,
+    exchange_to: order.exchange_to,
+    amount_usd: order.amount_usd,
+    amount_cfa: order.amount_cfa,
+    created_at: order.created_at
+  };
+}
 
 const storage = multer.diskStorage({
-  destination: './uploads/',
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+  destination: uploadsDir,
+  filename: function(req, file, cb) {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const safeExt = ['.png', '.jpg', '.jpeg', '.pdf'].includes(ext)
+      ? ext
+      : (file.mimetype === 'application/pdf' ? '.pdf' : '.png');
+    cb(null, crypto.randomUUID() + safeExt);
+  }
 });
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: function(req, file, cb) {
+    const allowed = ['image/png', 'image/jpeg', 'application/pdf'];
+    if (allowed.includes(file.mimetype)) return cb(null, true);
+    return cb(new Error('Format de fichier non supporte'));
+  }
+});
 
 const MONGO_URI = process.env.MONGODB_URI;
 let dbConn;
@@ -41,7 +164,7 @@ async function connectDB() {
   if (!existing) {
     await admins.insertOne({
       username: 'admin',
-      password: bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'congoswap2024', 10)
+      password: bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10)
     });
     console.log('Admin cree');
   }
@@ -91,15 +214,15 @@ const db = {
 // sendEmail et sendTelegram importes depuis utils.js
 
 function authRequired(req, res, next) {
-  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+  const token = getRequestToken(req);
   if (!token) return res.status(401).json({ error: 'Non autorise' });
   try {
-    req.admin = jwt.verify(token, process.env.JWT_SECRET || 'congoswap_secret');
+    req.admin = jwt.verify(token, getJwtSecret());
     next();
   } catch { res.status(401).json({ error: 'Token invalide' }); }
 }
 
-app.get('/api/test-email', async (req, res) => {
+app.get('/api/test-email', authRequired, async (req, res) => {
   if (!process.env.BREVO_SMTP_KEY) return res.json({ error: 'BREVO_SMTP_KEY non configure' });
   try {
     const r = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -141,21 +264,38 @@ app.get('/api/prices', async (req, res) => {
 
 app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
   try {
-    const { type, email, crypto, network, amount_usd, amount_cfa, wallet_address, phone, referrer,
-            exchange_from, exchange_to, exchange_network_from, exchange_network_to } = req.body;
+    const type = cleanText(req.body.type, 20);
+    const email = normalizeEmail(req.body.email);
+    const cryptoName = cleanText(req.body.crypto, 32);
+    const network = cleanText(req.body.network, 64);
+    const walletAddress = cleanText(req.body.wallet_address, 200);
+    const phone = cleanText(req.body.phone, 40);
+    const referrer = normalizeEmail(req.body.referrer);
+    const exchangeFrom = cleanText(req.body.exchange_from, 32);
+    const exchangeTo = cleanText(req.body.exchange_to, 32);
+    const exchangeNetworkFrom = cleanText(req.body.exchange_network_from, 64);
+    const exchangeNetworkTo = cleanText(req.body.exchange_network_to, 64);
+    const amountUsd = parseFloat(req.body.amount_usd);
+    const amountCfa = parseFloat(req.body.amount_cfa);
+
+    if (!['buy', 'sell', 'exchange'].includes(type)) return res.status(400).json({ error: 'Type invalide' });
+    if (!isValidEmail(email)) return res.status(400).json({ error: 'Email invalide' });
+    if (!Number.isFinite(amountUsd) || amountUsd <= 0) return res.status(400).json({ error: 'Montant invalide' });
+
+    const rates = await loadRates();
     const id = uuidv4();
     const now = new Date().toISOString();
     await db.insertOrder({
       id, type, email,
       phone: phone || '',
       referrer: referrer || '',
-      crypto: crypto || '', network: network || '',
-      amount_usd: parseFloat(amount_usd) || 0,
-      amount_cfa: parseFloat(amount_cfa) || 0,
-      wallet_address: wallet_address || '',
+      crypto: cryptoName || '', network: network || '',
+      amount_usd: amountUsd || 0,
+      amount_cfa: amountCfa || 0,
+      wallet_address: walletAddress || '',
       screenshot_path: req.file ? '/uploads/' + req.file.filename : null,
-      exchange_from: exchange_from || '', exchange_to: exchange_to || '',
-      exchange_network_from: exchange_network_from || '', exchange_network_to: exchange_network_to || '',
+      exchange_from: exchangeFrom || '', exchange_to: exchangeTo || '',
+      exchange_network_from: exchangeNetworkFrom || '', exchange_network_to: exchangeNetworkTo || '',
       status: 'pending', notes: '', created_at: now, updated_at: now
     });
 
@@ -191,13 +331,13 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
       '<div style="background:#161616;border:1px solid #2a2a2a;border-left:3px solid ' + typeColor + ';padding:20px;margin-bottom:20px;border-radius:2px;">' +
       '<div style="font-size:12px;font-weight:700;color:' + typeColor + ';letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;">Détails de la transaction</div>' +
       '<table width="100%" cellpadding="0" cellspacing="0">' +
-      (type !== 'exchange' ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;width:40%;">Cryptomonnaie</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;font-weight:600;">' + (crypto || '--') + '</td></tr>' : '') +
+      (type !== 'exchange' ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;width:40%;">Cryptomonnaie</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;font-weight:600;">' + (cryptoName || '--') + '</td></tr>' : '') +
       (type !== 'exchange' ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Réseau</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;">' + (network || '--') + '</td></tr>' : '') +
-      (type === 'exchange' ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Vous envoyez</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;font-weight:600;">' + exchange_from + ' (' + exchange_network_from + ')</td></tr>' : '') +
-      (type === 'exchange' ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Vous recevez</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;font-weight:600;">' + exchange_to + ' (' + exchange_network_to + ')</td></tr>' : '') +
-      (amount_usd ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Montant USD</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;font-weight:600;">$' + amount_usd + '</td></tr>' : '') +
-      (amount_cfa ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Montant FCFA</td><td style="padding:6px 0;color:' + typeColor + ';font-size:16px;font-weight:800;">' + new Intl.NumberFormat('fr-FR').format(amount_cfa) + ' FCFA</td></tr>' : '') +
-      (wallet_address ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">' + (type === 'buy' ? 'Votre wallet' : 'Wallet source') + '</td><td style="padding:6px 0;color:#f0ede6;font-size:11px;font-family:monospace;word-break:break-all;">' + wallet_address + '</td></tr>' : '') +
+      (type === 'exchange' ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Vous envoyez</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;font-weight:600;">' + exchangeFrom + ' (' + exchangeNetworkFrom + ')</td></tr>' : '') +
+      (type === 'exchange' ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Vous recevez</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;font-weight:600;">' + exchangeTo + ' (' + exchangeNetworkTo + ')</td></tr>' : '') +
+      (amountUsd ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Montant USD</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;font-weight:600;">$' + amountUsd + '</td></tr>' : '') +
+      (amountCfa ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Montant FCFA</td><td style="padding:6px 0;color:' + typeColor + ';font-size:16px;font-weight:800;">' + new Intl.NumberFormat('fr-FR').format(amountCfa) + ' FCFA</td></tr>' : '') +
+      (walletAddress ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">' + (type === 'buy' ? 'Votre wallet' : 'Wallet source') + '</td><td style="padding:6px 0;color:#f0ede6;font-size:11px;font-family:monospace;word-break:break-all;">' + walletAddress + '</td></tr>' : '') +
       (phone ? '<tr><td style="padding:6px 0;color:#8a8578;font-size:13px;">Mobile Money</td><td style="padding:6px 0;color:#f0ede6;font-size:13px;">' + phone + '</td></tr>' : '') +
       '</table></div>' +
 
@@ -209,9 +349,9 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
 
       // Taux rappel
       '<div style="background:#111;border:1px solid #1a1a1a;padding:16px 20px;margin-bottom:20px;border-radius:2px;display:flex;gap:24px;">' +
-      '<div><div style="font-size:11px;color:#8a8578;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Taux achat</div><div style="color:#C9A84C;font-weight:700;font-size:15px;">630 FCFA/$</div></div>' +
-      '<div style="border-left:1px solid #2a2a2a;padding-left:24px;"><div style="font-size:11px;color:#8a8578;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Taux vente</div><div style="color:#2ecc71;font-weight:700;font-size:15px;">575 FCFA/$</div></div>' +
-      '<div style="border-left:1px solid #2a2a2a;padding-left:24px;"><div style="font-size:11px;color:#8a8578;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Abonnements</div><div style="color:#e74c3c;font-weight:700;font-size:15px;">700 FCFA/$</div></div>' +
+      '<div><div style="font-size:11px;color:#8a8578;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Taux achat</div><div style="color:#C9A84C;font-weight:700;font-size:15px;">' + getRateValue(rates, 'buy') + ' FCFA/$</div></div>' +
+      '<div style="border-left:1px solid #2a2a2a;padding-left:24px;"><div style="font-size:11px;color:#8a8578;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Taux vente</div><div style="color:#2ecc71;font-weight:700;font-size:15px;">' + getRateValue(rates, 'sell') + ' FCFA/$</div></div>' +
+      '<div style="border-left:1px solid #2a2a2a;padding-left:24px;"><div style="font-size:11px;color:#8a8578;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;">Abonnements</div><div style="color:#e74c3c;font-weight:700;font-size:15px;">' + getRateValue(rates, 'payment') + ' FCFA/$</div></div>' +
       '</div>' +
 
       // CTA
@@ -231,10 +371,10 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
       '<p><strong>Type :</strong> ' + typeLabel + '</p>' +
       '<p><strong>Email client :</strong> ' + email + '</p>' +
       '<p><strong>Telephone :</strong> ' + (phone || 'Non renseigne') + '</p>' +
-      '<p><strong>Crypto :</strong> ' + (crypto || (exchange_from + ' → ' + exchange_to)) + '</p>' +
-      '<p><strong>Reseau :</strong> ' + (network || exchange_network_from || 'N/A') + '</p>' +
-      (amount_usd ? '<p><strong>Montant :</strong> $' + amount_usd + ' soit ' + amount_cfa + ' FCFA</p>' : '') +
-      '<p><strong>Wallet client :</strong> ' + (wallet_address || 'N/A') + '</p>' +
+      '<p><strong>Crypto :</strong> ' + (cryptoName || (exchangeFrom + ' → ' + exchangeTo)) + '</p>' +
+      '<p><strong>Reseau :</strong> ' + (network || exchangeNetworkFrom || 'N/A') + '</p>' +
+      (amountUsd ? '<p><strong>Montant :</strong> $' + amountUsd + ' soit ' + amountCfa + ' FCFA</p>' : '') +
+      '<p><strong>Wallet client :</strong> ' + (walletAddress || 'N/A') + '</p>' +
       '</div>' +
       '<a href="https://congoswap.onrender.com/admin.html" style="background:#C9A84C;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;display:inline-block;margin-top:8px;">Voir dans l\'admin</a>' +
       '</div>'
@@ -249,10 +389,10 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
       '📧 <b>Email :</b> ' + email + '\n' +
       '📱 <b>Tel :</b> ' + (phone || 'Non renseigne') + '\n' +
       sep + '\n' +
-      '💎 <b>Crypto :</b> ' + (crypto || (exchange_from + ' → ' + exchange_to)) + '\n' +
-      '🌐 <b>Reseau :</b> ' + (network || exchange_network_from || 'N/A') + '\n' +
-      '💵 <b>Montant :</b> ' + (amount_usd ? '$' + amount_usd + '  (~' + amount_cfa + ' FCFA)' : 'Echange') + '\n' +
-      '🔗 <b>Wallet :</b> <code>' + (wallet_address || 'N/A') + '</code>\n' +
+      '💎 <b>Crypto :</b> ' + (cryptoName || (exchangeFrom + ' → ' + exchangeTo)) + '\n' +
+      '🌐 <b>Reseau :</b> ' + (network || exchangeNetworkFrom || 'N/A') + '\n' +
+      '💵 <b>Montant :</b> ' + (amountUsd ? '$' + amountUsd + '  (~' + amountCfa + ' FCFA)' : 'Echange') + '\n' +
+      '🔗 <b>Wallet :</b> <code>' + (walletAddress || 'N/A') + '</code>\n' +
       (referrer ? '🎁 <b>Parrain :</b> ' + referrer + '\n' : '') +
       sep + '\n' +
       '⏰ ' + new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Brazzaville' })
@@ -284,21 +424,34 @@ app.post('/api/orders', upload.single('screenshot'), async (req, res) => {
 app.get('/api/orders/:id', async (req, res) => {
   const order = await db.getOrder(req.params.id);
   if (!order) return res.status(404).json({ error: 'Commande introuvable' });
-  const { id, type, status, crypto, amount_usd, amount_cfa, created_at } = order;
-  res.json({ id, type, status, crypto, amount_usd, amount_cfa, created_at });
+  res.json(publicOrderView(order));
 });
 
 // ─── OTP VERIFICATION ─────────────────────────────────────────
 app.post('/api/otp/send', async (req, res) => {
-  const { email } = req.body;
-  if (!email || !email.includes('@')) return res.status(400).json({ error: 'Email invalide' });
+  const email = normalizeEmail(req.body.email);
+  const purpose = cleanText(req.body.purpose || 'history', 20);
+  if (!isValidEmail(email)) return res.status(400).json({ error: 'Email invalide' });
+  if (!OTP_PURPOSES.has(purpose)) return res.status(400).json({ error: 'Usage OTP invalide' });
+
+  const existing = await dbConn.collection('otp').findOne({ email, purpose });
+  if (existing && existing.last_sent_at && (Date.now() - new Date(existing.last_sent_at).getTime()) < 60000) {
+    return res.status(429).json({ error: 'Veuillez patienter avant de demander un nouveau code.' });
+  }
 
   const code    = Math.floor(100000 + Math.random() * 900000).toString();
   const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
   await dbConn.collection('otp').updateOne(
-    { email },
-    { $set: { email, code, expires, created_at: new Date() } },
+    { email, purpose },
+    {
+      $set: {
+        email, purpose, code, expires,
+        created_at: new Date(),
+        last_sent_at: new Date(),
+        verify_attempts: 0
+      }
+    },
     { upsert: true }
   );
 
@@ -317,18 +470,41 @@ app.post('/api/otp/send', async (req, res) => {
 });
 
 app.post('/api/otp/verify', async (req, res) => {
-  const { email, code } = req.body;
-  const otp = await dbConn.collection('otp').findOne({ email });
-  if (!otp || otp.code !== code) return res.status(400).json({ error: 'Code invalide' });
+  const email = normalizeEmail(req.body.email);
+  const code = cleanText(req.body.code, 6);
+  const purpose = cleanText(req.body.purpose || 'history', 20);
+  if (!OTP_PURPOSES.has(purpose)) return res.status(400).json({ error: 'Usage OTP invalide' });
+  const otp = await dbConn.collection('otp').findOne({ email, purpose });
+  if (!otp) return res.status(400).json({ error: 'Code invalide' });
+  if ((otp.verify_attempts || 0) >= 5) return res.status(429).json({ error: 'Trop de tentatives' });
+  if (otp.code !== code) {
+    await dbConn.collection('otp').updateOne(
+      { email, purpose },
+      { $inc: { verify_attempts: 1 } }
+    );
+    return res.status(400).json({ error: 'Code invalide' });
+  }
   if (new Date() > otp.expires) return res.status(400).json({ error: 'Code expire' });
-  await dbConn.collection('otp').deleteOne({ email });
-  res.json({ success: true });
+  await dbConn.collection('otp').deleteOne({ email, purpose });
+  res.json({ success: true, access_token: buildAccessToken(email, purpose) });
 });
 
 // ─── PAIEMENTS INTERNATIONAUX ─────────────────────────────────
 app.post('/api/payments', upload.single('screenshot'), async (req, res) => {
   try {
-    const { email, phone, service, details, amount_usd, amount_cfa, note, referrer } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const phone = cleanText(req.body.phone, 40);
+    const service = cleanText(req.body.service, 120);
+    const details = cleanText(req.body.details, 120);
+    const note = cleanText(req.body.note, 300);
+    const referrer = normalizeEmail(req.body.referrer);
+    const amountUsd = parseFloat(req.body.amount_usd);
+    const amountCfa = parseFloat(req.body.amount_cfa);
+
+    if (!isValidEmail(email)) return res.status(400).json({ error: 'Email invalide' });
+    if (!service) return res.status(400).json({ error: 'Service invalide' });
+    if (!Number.isFinite(amountUsd) || amountUsd <= 0) return res.status(400).json({ error: 'Montant invalide' });
+
     const id  = uuidv4();
     const now = new Date().toISOString();
 
@@ -337,8 +513,8 @@ app.post('/api/payments', upload.single('screenshot'), async (req, res) => {
       phone:      phone || '',
       service:    service || '',
       details:    details || '',
-      amount_usd: parseFloat(amount_usd) || 0,
-      amount_cfa: parseFloat(amount_cfa) || 0,
+      amount_usd: amountUsd || 0,
+      amount_cfa: amountCfa || 0,
       note:       note || '',
       referrer:   referrer || '',
       screenshot_path: req.file ? '/uploads/' + req.file.filename : null,
@@ -356,7 +532,7 @@ app.post('/api/payments', upload.single('screenshot'), async (req, res) => {
       '<p><strong>Reference :</strong> #' + id.slice(0,8).toUpperCase() + '</p>' +
       '<p><strong>Service :</strong> ' + service + '</p>' +
       '<p><strong>Duree :</strong> ' + details + '</p>' +
-      '<p><strong>Montant :</strong> $' + amount_usd + ' = ' + amount_cfa + ' FCFA</p>' +
+      '<p><strong>Montant :</strong> $' + amountUsd + ' = ' + amountCfa + ' FCFA</p>' +
       '</div>' +
       '<p>Apres confirmation de votre paiement Mobile Money, vous recevrez vos identifiants de connexion par email dans les <strong>30 minutes</strong>.</p>' +
       '<p style="color:#8a8578;font-size:.85rem;">Merci de faire confiance a CongoSwap.</p>' +
@@ -373,7 +549,7 @@ app.post('/api/payments', upload.single('screenshot'), async (req, res) => {
       '<p><strong>Tel :</strong> ' + (phone || 'N/A') + '</p>' +
       '<p><strong>Service :</strong> ' + service + '</p>' +
       '<p><strong>Compte :</strong> ' + details + '</p>' +
-      '<p><strong>Montant :</strong> $' + amount_usd + ' = ' + amount_cfa + ' FCFA</p>' +
+      '<p><strong>Montant :</strong> $' + amountUsd + ' = ' + amountCfa + ' FCFA</p>' +
       (note ? '<p><strong>Note :</strong> ' + note + '</p>' : '') +
       '</div>' +
       '<a href="https://congoswap.onrender.com/admin.html" style="background:#C9A84C;color:#000;padding:12px 24px;text-decoration:none;font-weight:bold;display:inline-block;">Voir dans l\'admin</a>' +
@@ -390,7 +566,7 @@ app.post('/api/payments', upload.single('screenshot'), async (req, res) => {
       '───────────────────\n' +
       '🌐 <b>Service :</b> ' + service + '\n' +
       '👤 <b>Compte :</b> ' + details + '\n' +
-      '💵 <b>Montant :</b> $' + amount_usd + '  (~' + amount_cfa + ' FCFA)\n' +
+      '💵 <b>Montant :</b> $' + amountUsd + '  (~' + amountCfa + ' FCFA)\n' +
       (note ? '📝 <b>Note :</b> ' + note + '\n' : '') +
       '───────────────────\n' +
       '⏰ ' + new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Brazzaville' })
@@ -402,19 +578,21 @@ app.post('/api/payments', upload.single('screenshot'), async (req, res) => {
 
 // Historique transactions par email (client)
 app.get('/api/my-orders', async (req, res) => {
-  const email = req.query.email;
-  if (!email) return res.status(400).json({ error: 'Email requis' });
+  const email = normalizeEmail(req.query.email);
+  if (!isValidEmail(email)) return res.status(400).json({ error: 'Email requis' });
+  if (!verifyScopedToken(req, email, 'history')) return res.status(401).json({ error: 'Verification requise' });
   const orders = await dbConn.collection('orders')
     .find({ email: email })
     .sort({ created_at: -1 })
     .toArray();
-  res.json({ orders });
+  res.json({ orders: orders.map(publicOrderView) });
 });
 
 // Stats parrainage
 app.get('/api/referral-stats', async (req, res) => {
-  const email = req.query.email;
-  if (!email) return res.json({ total: 0, validated: 0 });
+  const email = normalizeEmail(req.query.email);
+  if (!isValidEmail(email)) return res.status(400).json({ error: 'Email requis' });
+  if (!verifyScopedToken(req, email, 'referral')) return res.status(401).json({ error: 'Verification requise' });
   const all       = await dbConn.collection('orders').find({ referrer: email }).toArray();
   const validated = all.filter(function(o) { return o.status === 'validated'; });
   res.json({ total: all.length, validated: validated.length });
@@ -444,12 +622,19 @@ app.get('/api/trusted-clients', async (req, res) => {
   } catch(e) { res.json({ clients: [] }); }
 });
 
+app.get('/api/public-stats', async (req, res) => {
+  try {
+    const total = await dbConn.collection('orders').countDocuments();
+    res.json({ total });
+  } catch(e) { res.json({ total: 0 }); }
+});
+
 app.post('/api/admin/login', async (req, res) => {
   const { username, password } = req.body;
   const user = await db.getAdmin(username);
   if (!user || !bcrypt.compareSync(password, user.password))
     return res.status(401).json({ error: 'Identifiants incorrects' });
-  const token = jwt.sign({ username }, process.env.JWT_SECRET || 'congoswap_secret', { expiresIn: '24h' });
+  const token = jwt.sign({ username }, getJwtSecret(), { expiresIn: '24h' });
   res.json({ token });
 });
 
@@ -460,9 +645,11 @@ app.get('/api/admin/orders', authRequired, async (req, res) => {
 });
 
 app.patch('/api/admin/orders/:id', authRequired, async (req, res) => {
-  const { status, notes } = req.body;
+  const status = cleanText(req.body.status, 20);
+  const notes = cleanText(req.body.notes, 500);
   const order = await db.getOrder(req.params.id);
   if (!order) return res.status(404).json({ error: 'Introuvable' });
+  if (!['pending', 'validated', 'rejected'].includes(status)) return res.status(400).json({ error: 'Statut invalide' });
   await db.updateOrder(req.params.id, { status, notes: notes || order.notes });
   const typeLabel   = order.type === 'buy' ? 'Achat' : order.type === 'sell' ? 'Vente' : 'Echange';
   const statusLabel = status === 'validated' ? 'validee' : 'refusee';
@@ -487,11 +674,24 @@ app.delete('/api/admin/orders/:id', authRequired, async (req, res) => {
   res.json({ success: true });
 });
 
+app.get('/api/admin/orders/:id/screenshot', authRequired, async (req, res) => {
+  const order = await db.getOrder(req.params.id);
+  if (!order || !order.screenshot_path) return res.status(404).json({ error: 'Capture introuvable' });
+  const filePath = path.join(uploadsDir, path.basename(order.screenshot_path));
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Capture introuvable' });
+  res.sendFile(filePath);
+});
+
 // Envoi des accès abonnement au client
 app.post('/api/admin/send-access', authRequired, async (req, res) => {
-  const { orderId, service, accountEmail, accountPass, note } = req.body;
+  const orderId = cleanText(req.body.orderId, 60);
+  const service = cleanText(req.body.service, 120);
+  const accountEmail = cleanText(req.body.accountEmail, 160);
+  const accountPass = cleanText(req.body.accountPass, 160);
+  const note = cleanText(req.body.note, 400);
   const order = await db.getOrder(orderId);
   if (!order) return res.status(404).json({ error: 'Commande introuvable' });
+  if (!service || !accountEmail || !accountPass) return res.status(400).json({ error: 'Parametres invalides' });
 
   await sendEmail(order.email, 'CongoSwap - Vos accès ' + service,
     '<div style="font-family:sans-serif;max-width:500px;margin:auto;background:#0d0d0d;color:#f0ede6;padding:32px;border-radius:8px;">' +
@@ -565,33 +765,20 @@ app.get('/api/admin/analytics', authRequired, async (req, res) => {
 
 // Taux — lecture
 app.get('/api/admin/rates', authRequired, async (req, res) => {
-  try {
-    const doc = await dbConn.collection('config').findOne({ key: 'rates' });
-    if (doc) res.json(doc.value);
-    else res.json({ buy: 630, sell: 575, exchange: 2 });
-  } catch(e) { res.json({ buy: 630, sell: 575, exchange: 2 }); }
+  res.json(await loadRates());
 });
 
 // Taux — mise a jour
 app.post('/api/admin/rates', authRequired, async (req, res) => {
   try {
-    const { buy, sell, exchange } = req.body;
-    await dbConn.collection('config').updateOne(
-      { key: 'rates' },
-      { $set: { key: 'rates', value: { buy, sell, exchange } } },
-      { upsert: true }
-    );
-    res.json({ success: true });
+    const rates = await saveRates(req.body || {});
+    res.json({ success: true, rates });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // Taux publics (pour le frontend)
 app.get('/api/rates', async (req, res) => {
-  try {
-    const doc = await dbConn.collection('config').findOne({ key: 'rates' });
-    if (doc) res.json(doc.value);
-    else res.json({ buy: 630, sell: 575, exchange: 2 });
-  } catch(e) { res.json({ buy: 630, sell: 575, exchange: 2 }); }
+  res.json(await loadRates());
 });
 
 app.get('*', (req, res) => {
@@ -600,6 +787,9 @@ app.get('*', (req, res) => {
 
 // ─── TELEGRAM WEBHOOK ─────────────────────────────────────────
 app.post('/webhook/telegram', (req, res) => {
+  if (req.headers['x-telegram-bot-api-secret-token'] !== process.env.TELEGRAM_WEBHOOK_SECRET) {
+    return res.sendStatus(403);
+  }
   res.sendStatus(200);
   if (global.telegramBot) {
     global.telegramBot.processUpdate(req.body);
@@ -613,11 +803,21 @@ connectDB().then(function() {
     console.log('CongoSwap backend running on port ' + PORT);
     // Configurer le webhook après démarrage
     if (global.telegramBot) {
-      global.telegramBot.setWebHook('https://congoswap.onrender.com/webhook/telegram')
+      global.telegramBot.setWebHook('https://congoswap.onrender.com/webhook/telegram', {
+        secret_token: process.env.TELEGRAM_WEBHOOK_SECRET
+      })
         .then(function() { console.log('Webhook Telegram configure'); })
         .catch(function(e) { console.error('Webhook erreur:', e.message); });
     }
   });
 }).catch(function(e) { console.error('Erreur MongoDB:', e.message); process.exit(1); });
 
-module.exports = { sendEmail, sendTelegram };
+app.use(function(err, req, res, next) {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: 'Upload invalide: ' + err.message });
+  }
+  if (err && err.message === 'Format de fichier non supporte') {
+    return res.status(400).json({ error: err.message });
+  }
+  return next(err);
+});

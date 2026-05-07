@@ -1,15 +1,16 @@
 // ─── CONFIG ───────────────────────────────────────────────────
 const API = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+const SUPPORT_PHONE = '+242 06 114 9792';
 
-const RATES = { buy: 630, sell: 575, exchange: 2 };
+const RATES = { buy: 630, sell: 575, exchange: 2, payment: 700 };
 
 const CRYPTOS = {
-  BTC:  { name: 'Bitcoin',      symbol: 'BTC',  coingecko: 'bitcoin' },
-  ETH:  { name: 'Ethereum',     symbol: 'ETH',  coingecko: 'ethereum' },
-  USDT: { name: 'Tether USD',   symbol: 'USDT', coingecko: 'tether' },
-  BNB:  { name: 'Binance Coin', symbol: 'BNB',  coingecko: 'binancecoin' },
-  SOL:  { name: 'Solana',       symbol: 'SOL',  coingecko: 'solana' },
-  XRP:  { name: 'Ripple',       symbol: 'XRP',  coingecko: 'ripple' },
+  BTC:  { name: 'Bitcoin',      symbol: 'BTC',  coingecko: 'bitcoin',     icon: '₿' },
+  ETH:  { name: 'Ethereum',     symbol: 'ETH',  coingecko: 'ethereum',    icon: 'Ξ' },
+  USDT: { name: 'Tether USD',   symbol: 'USDT', coingecko: 'tether',      icon: '₮' },
+  BNB:  { name: 'Binance Coin', symbol: 'BNB',  coingecko: 'binancecoin', icon: 'B' },
+  SOL:  { name: 'Solana',       symbol: 'SOL',  coingecko: 'solana',      icon: 'S' },
+  XRP:  { name: 'Ripple',       symbol: 'XRP',  coingecko: 'ripple',      icon: 'X' },
 };
 
 const NETWORKS = {
@@ -48,6 +49,8 @@ function getWalletAddress(crypto, network) {
 
 // ─── PRIX ─────────────────────────────────────────────────────
 var _prices = {};
+var _ratesLoaded = false;
+var otpAccessTokens = {};
 
 async function loadPrices() {
   try {
@@ -55,6 +58,18 @@ async function loadPrices() {
     _prices = await r.json();
   } catch(e) {}
   return _prices;
+}
+
+async function loadRates() {
+  try {
+    const r = await fetch(API + '/api/rates');
+    const data = await r.json();
+    if (data && typeof data === 'object') {
+      Object.assign(RATES, data);
+      _ratesLoaded = true;
+    }
+  } catch(e) {}
+  return RATES;
 }
 
 function getUsdPrice(sym) {
@@ -75,9 +90,9 @@ function formatUSD(n) {
 // ─── NAV ──────────────────────────────────────────────────────
 function buildNavHTML(activePage) {
   return '<nav>' +
-    '<a class="logo" href="/">Congo<span>Swap</span></a>' +
+    '<a class="logo" href="/index.html">Congo<span>Swap</span></a>' +
     '<ul>' +
-    '<li><a href="/" class="' + (activePage==='home'?'active':'') + '">Accueil</a></li>' +
+    '<li><a href="/index.html" class="' + (activePage==='home'?'active':'') + '">Accueil</a></li>' +
     '<li><a href="/buy.html" class="' + (activePage==='buy'?'active':'') + '">Acheter</a></li>' +
     '<li><a href="/sell.html" class="' + (activePage==='sell'?'active':'') + '">Vendre</a></li>' +
     '<li><a href="/exchange.html" class="' + (activePage==='exchange'?'active':'') + '">Echanger</a></li>' +
@@ -90,7 +105,7 @@ function buildNavHTML(activePage) {
     '<button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>' +
     '</nav>' +
     '<div class="nav-drawer" id="nav-drawer">' +
-    '<a href="/">Accueil</a>' +
+    '<a href="/index.html">Accueil</a>' +
     '<a href="/buy.html">💸 Acheter des cryptos</a>' +
     '<a href="/sell.html">💰 Vendre mes cryptos</a>' +
     '<a href="/exchange.html">🔄 Echanger</a>' +
@@ -104,7 +119,7 @@ function buildNavHTML(activePage) {
 
 function buildFooterHTML() {
   return '<footer>' +
-    '<a class="logo" href="/">Congo<span>Swap</span></a>' +
+    '<a class="logo" href="/index.html">Congo<span>Swap</span></a>' +
     '<p>© ' + new Date().getFullYear() + ' CongoSwap · République du Congo</p>' +
     '<p>Les prix sont indicatifs et mis à jour en temps réel.</p>' +
     '<p style="margin-top:8px;font-size:.78rem;">' +
@@ -170,6 +185,18 @@ function copyText(text) {
   });
 }
 
+function getOtpCacheKey(email, purpose) {
+  return purpose + ':' + email.toLowerCase();
+}
+
+function getOtpAccessToken(email, purpose) {
+  return otpAccessTokens[getOtpCacheKey(email, purpose)] || '';
+}
+
+function setOtpAccessToken(email, purpose, token) {
+  otpAccessTokens[getOtpCacheKey(email, purpose)] = token;
+}
+
 // ─── PARRAINAGE ───────────────────────────────────────────────
 (function() {
   var params = new URLSearchParams(window.location.search);
@@ -184,20 +211,25 @@ function getReferrer() {
 // ─── OTP ──────────────────────────────────────────────────────
 var otpVerified = {};
 
-async function requestOTP(email) {
+async function requestOTP(email, purpose) {
   try {
     const r = await fetch(API + '/api/otp/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email })
+      body: JSON.stringify({ email: email, purpose: purpose || 'history' })
     });
     return r.ok;
   } catch(e) { return false; }
 }
 
-async function showOTPModal(email, onSuccess) {
-  if (otpVerified[email]) { onSuccess(); return; }
-  await requestOTP(email);
+async function showOTPModal(email, onSuccess, purpose) {
+  purpose = purpose || 'history';
+  var key = getOtpCacheKey(email, purpose);
+  if (otpVerified[key] && getOtpAccessToken(email, purpose)) {
+    onSuccess(getOtpAccessToken(email, purpose));
+    return;
+  }
+  await requestOTP(email, purpose);
   var modal = document.createElement('div');
   modal.id = 'otp-modal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
@@ -207,29 +239,32 @@ async function showOTPModal(email, onSuccess) {
     '<div style="font-family:\'Syne\',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:8px;">Verification email</div>' +
     '<p style="color:var(--text-dim);font-size:.86rem;margin-bottom:20px;">Code envoye a <strong>' + email + '</strong></p>' +
     '<input type="text" id="otp-input" maxlength="6" placeholder="000000" style="width:100%;text-align:center;font-family:monospace;font-size:1.8rem;letter-spacing:8px;background:var(--dark);border:1px solid var(--border);color:var(--text);padding:14px;margin-bottom:14px;"/>' +
-    '<button onclick="verifyOTP(\'' + email + '\')" class="btn btn-gold btn-full" style="margin-bottom:10px;">Verifier</button>' +
+    '<button onclick="verifyOTP(\'' + email + '\', \'' + purpose + '\')" class="btn btn-gold btn-full" style="margin-bottom:10px;">Verifier</button>' +
     '<div id="otp-error" style="color:var(--red);font-size:.82rem;margin-top:8px;"></div>' +
     '</div>';
   window._otpCallback = onSuccess;
+  window._otpPurpose = purpose;
   document.body.appendChild(modal);
 }
 
-async function verifyOTP(email) {
+async function verifyOTP(email, purpose) {
   var code = document.getElementById('otp-input').value.trim();
   if (code.length !== 6) { document.getElementById('otp-error').textContent = 'Entrez les 6 chiffres.'; return; }
   try {
     const r = await fetch(API + '/api/otp/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, code: code })
+      body: JSON.stringify({ email: email, code: code, purpose: purpose || 'history' })
     });
     const data = await r.json();
-    if (data.success) {
-      otpVerified[email] = true;
+    if (data.success && data.access_token) {
+      var key = getOtpCacheKey(email, purpose || 'history');
+      otpVerified[key] = true;
+      setOtpAccessToken(email, purpose || 'history', data.access_token);
       document.getElementById('otp-modal').remove();
-      if (window._otpCallback) window._otpCallback();
+      if (window._otpCallback) window._otpCallback(data.access_token);
     } else {
-      document.getElementById('otp-error').textContent = 'Code incorrect. Reessayez.';
+      document.getElementById('otp-error').textContent = data.error || 'Code incorrect. Reessayez.';
     }
   } catch(e) {
     document.getElementById('otp-error').textContent = 'Erreur. Reessayez.';
@@ -237,10 +272,12 @@ async function verifyOTP(email) {
 }
 
 // ─── HAMBURGER ────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
+function initNavDrawer() {
   var btn = document.getElementById('hamburger');
   var drawer = document.getElementById('nav-drawer');
   if (!btn || !drawer) return;
+  if (btn.dataset.bound === '1') return;
+  btn.dataset.bound = '1';
   btn.addEventListener('click', function(e) {
     e.stopPropagation();
     btn.classList.toggle('open');
@@ -252,7 +289,10 @@ document.addEventListener('DOMContentLoaded', function() {
       drawer.classList.remove('open');
     }
   });
-});
+}
+
+window.initNavDrawer = initNavDrawer;
+document.addEventListener('DOMContentLoaded', initNavDrawer);
 
 // ─── GOOGLE ANALYTICS ─────────────────────────────────────────
 (function() {
@@ -313,11 +353,11 @@ document.addEventListener('DOMContentLoaded', function() {
     input.value = '';
     var lower = text.toLowerCase();
     setTimeout(function() {
-      if (lower.includes('achat') || lower.includes('acheter')) addMsg('bot', 'Pour acheter : 630 FCFA/$. Minimum $5. Rendez-vous sur la page Acheter.');
-      else if (lower.includes('vente') || lower.includes('vendre')) addMsg('bot', 'Pour vendre : 575 FCFA/$. Minimum $5. Rendez-vous sur la page Vendre.');
-      else if (lower.includes('abonnement') || lower.includes('netflix') || lower.includes('spotify')) addMsg('bot', 'Abonnements disponibles à 700 FCFA/$. Voir la page Abonnements.');
-      else if (lower.includes('taux') || lower.includes('prix')) addMsg('bot', 'Achat : 630 FCFA/$ · Vente : 575 FCFA/$ · Abonnements : 700 FCFA/$');
-      else addMsg('bot', 'Pour une aide rapide : WhatsApp +242 06 114 9792');
+      if (lower.includes('achat') || lower.includes('acheter')) addMsg('bot', 'Pour acheter : ' + RATES.buy + ' FCFA/$. Minimum $5. Rendez-vous sur la page Acheter.');
+      else if (lower.includes('vente') || lower.includes('vendre')) addMsg('bot', 'Pour vendre : ' + RATES.sell + ' FCFA/$. Minimum $5. Rendez-vous sur la page Vendre.');
+      else if (lower.includes('abonnement') || lower.includes('netflix') || lower.includes('spotify')) addMsg('bot', 'Abonnements disponibles à ' + RATES.payment + ' FCFA/$. Voir la page Abonnements.');
+      else if (lower.includes('taux') || lower.includes('prix')) addMsg('bot', 'Achat : ' + RATES.buy + ' FCFA/$ · Vente : ' + RATES.sell + ' FCFA/$ · Abonnements : ' + RATES.payment + ' FCFA/$');
+      else addMsg('bot', 'Pour une aide rapide : WhatsApp ' + SUPPORT_PHONE);
     }, 600);
   }
 

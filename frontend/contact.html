@@ -17,6 +17,10 @@
   <link rel="stylesheet" href="style.css"/>
   <style>
     .contact-hero { padding:100px 48px 60px; background:var(--dark2); border-bottom:1px solid var(--border); }
+    .contact-actions { display:flex; gap:12px; flex-wrap:wrap; margin:28px 0 0; }
+    .scroll-link { position:relative; overflow:hidden; }
+    .scroll-link::after { content:''; position:absolute; left:0; right:0; bottom:0; height:2px; background:var(--gold); transform:translateX(-101%); transition:transform .35s ease; }
+    .scroll-link:hover::after { transform:translateX(0); }
     .contact-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:2px; margin-top:48px; }
     .contact-card { background:var(--dark3); padding:32px 28px; text-decoration:none; color:var(--text); display:block; border:1px solid transparent; transition:border-color .2s,transform .2s; }
     .contact-card:hover { border-color:var(--border); transform:translateY(-3px); }
@@ -61,17 +65,21 @@
 
   <!-- CONTACT HERO -->
   <section class="contact-hero">
-    <span class="section-tag">Contact</span>
-    <h1 class="section-title">Contactez<br>notre équipe</h1>
-    <p class="section-sub">Disponibles tous les jours de 8h à 20h (heure de Brazzaville). Réponse garantie sous 30 minutes sur Telegram.</p>
-    <div class="contact-grid">
+      <span class="section-tag">Contact</span>
+      <h1 class="section-title">Contactez<br>notre équipe</h1>
+      <p class="section-sub">Disponibles tous les jours de 8h à 20h (heure de Brazzaville). Réponse garantie sous 30 minutes sur Telegram.</p>
+      <div class="contact-actions">
+        <a href="#faq-section" class="btn btn-outline scroll-link" id="faq-scroll-link">Voir la FAQ</a>
+        <a href="https://t.me/CongoSwap" target="_blank" class="btn btn-gold">Parler au support</a>
+      </div>
+      <div class="contact-grid">
       <a href="https://t.me/CongoSwap" target="_blank" class="contact-card">
         <div class="contact-icon">✈️</div>
         <h4>Telegram</h4>
         <p>Canal principal de communication. Réponse la plus rapide.</p>
         <div class="contact-val">@CongoSwapOfficial</div>
       </a>
-      <a href="magellandevoue3@gmail.com" class="contact-card">
+      <a href="mailto:magellandevoue3@gmail.com" class="contact-card">
         <div class="contact-icon">✉️</div>
         <h4>Email</h4>
         <p>Pour les demandes formelles, réclamations ou documents officiels.</p>
@@ -81,7 +89,7 @@
         <div class="contact-icon">📱</div>
         <h4>WhatsApp</h4>
         <p>Disponible également sur WhatsApp pour les clients préférant ce canal.</p>
-        <div class="contact-val">+242 06 114 92 97</div>
+        <div class="contact-val">+242 06 114 9792</div>
       </a>
       <div class="contact-card" style="cursor:default;">
         <div class="contact-icon">🕐</div>
@@ -94,7 +102,7 @@
   </section>
 
   <!-- FAQ -->
-  <section class="faq-section">
+  <section class="faq-section" id="faq-section">
     <span class="section-tag">FAQ</span>
     <h2 class="section-title">Questions fréquentes</h2>
     <p class="section-sub">Trouvez rapidement une réponse à votre question.</p>
@@ -117,7 +125,7 @@
       </div>
       <div class="faq-item" data-cat="general">
         <button class="faq-q">Comment êtes-vous différents des arnaques ? <span>+</span></button>
-        <div class="faq-a">Contrairement aux arnaqueurs étrangers anonymes, CongoSwap est une entité locale identifiable. Notre numéro Mobile Money (+242 06 932 59 37) est public et vérifiable. Nous ne demandons jamais de paiement avant de vous avoir confirmé les détails. Toutes nos transactions sont traçables par email avec des références uniques.</div>
+        <div class="faq-a">Contrairement aux arnaqueurs étrangers anonymes, CongoSwap est une entité locale identifiable. Notre numéro Mobile Money (+242 06 114 9792) est public et vérifiable. Nous ne demandons jamais de paiement avant de vous avoir confirmé les détails. Toutes nos transactions sont traçables par email avec des références uniques.</div>
       </div>
       <div class="faq-item" data-cat="general">
         <button class="faq-q">Quelles cryptomonnaies sont disponibles ? <span>+</span></button>
@@ -135,11 +143,11 @@
       <!-- ACHAT -->
       <div class="faq-item" data-cat="achat">
         <button class="faq-q">Comment acheter des cryptos sur CongoSwap ? <span>+</span></button>
-        <div class="faq-a">Rendez-vous sur la page "Acheter", choisissez la crypto souhaitée, entrez le montant en dollars. Le montant FCFA s'affiche automatiquement. Envoyez ce montant au +242 06 932 59 37 (Michy Magellan DEVOUE LI-MBOUITY) via Mobile Money, prenez une capture d'écran, remplissez le formulaire avec votre adresse wallet et l'image de paiement.</div>
+        <div class="faq-a">Rendez-vous sur la page "Acheter", choisissez la crypto souhaitée, entrez le montant en dollars. Le montant FCFA s'affiche automatiquement. Envoyez ce montant au +242 06 114 9792 (Michy Magellan DEVOUE LI-MBOUITY) via Mobile Money, prenez une capture d'écran, remplissez le formulaire avec votre adresse wallet et l'image de paiement.</div>
       </div>
       <div class="faq-item" data-cat="achat">
         <button class="faq-q">Quel est le taux d'achat ? <span>+</span></button>
-        <div class="faq-a">Le taux d'achat est de 630 FCFA par dollar américain. Par exemple, pour acheter 50 $ de Bitcoin, vous payez 31 500 FCFA en Mobile Money. Ce taux est fixe et transparent — pas de frais cachés.</div>
+        <div class="faq-a">Le taux d'achat est affiché en temps réel sur la page Acheter. Par exemple, pour acheter 50 $, vous payez simplement 50 multiplié par le taux indiqué au moment de votre demande. Le calcul est transparent, sans frais cachés.</div>
       </div>
       <div class="faq-item" data-cat="achat">
         <button class="faq-q">Quel est le montant minimum d'achat ? <span>+</span></button>
@@ -157,7 +165,7 @@
       </div>
       <div class="faq-item" data-cat="vente">
         <button class="faq-q">Quel est le taux de vente ? <span>+</span></button>
-        <div class="faq-a">Lorsque vous vendez, vous recevez 575 FCFA par dollar américain. Par exemple, pour 50 $ de Bitcoin vendu, vous recevez 28 750 FCFA sur votre Mobile Money. Ce taux est clairement affiché avant toute transaction.</div>
+        <div class="faq-a">Lorsque vous vendez, vous recevez le montant correspondant au taux de vente affiché sur la page Vendre. Par exemple, pour 50 $, vous recevez 50 multiplié par le taux en vigueur au moment de la validation. Ce taux est clairement affiché avant toute transaction.</div>
       </div>
       <div class="faq-item" data-cat="vente">
         <button class="faq-q">Dans quel délai recevrai-je mes FCFA ? <span>+</span></button>
@@ -175,17 +183,17 @@
       </div>
       <div class="faq-item" data-cat="securite">
         <button class="faq-q">Que faire si je me suis trompé d'adresse ? <span>+</span></button>
-        <div class="faq-a">Contactez-nous immédiatement sur Telegram (+242 06 932 59 37) avec votre numéro de référence. Si l'envoi n'est pas encore confirmé sur la blockchain, il peut être possible d'agir. Malheureusement, les transactions blockchain confirmées sont irréversibles — d'où l'importance de toujours vérifier l'adresse avant d'envoyer.</div>
+        <div class="faq-a">Contactez-nous immédiatement sur Telegram (+242 06 114 9792) avec votre numéro de référence. Si l'envoi n'est pas encore confirmé sur la blockchain, il peut être possible d'agir. Malheureusement, les transactions blockchain confirmées sont irréversibles — d'où l'importance de toujours vérifier l'adresse avant d'envoyer.</div>
       </div>
 
       <!-- PAIEMENT -->
       <div class="faq-item" data-cat="paiement">
         <button class="faq-q">Quels modes de paiement acceptez-vous ? <span>+</span></button>
-        <div class="faq-a">Pour les achats de crypto, nous acceptons les paiements Mobile Money MTN Congo et Airtel Money au numéro +242 06 932 59 37. Pour les virements de FCFA lors des ventes, nous utilisons également ces deux réseaux Mobile Money.</div>
+        <div class="faq-a">Pour les achats de crypto, nous acceptons les paiements Mobile Money MTN Congo et Airtel Money au numéro +242 06 114 9792. Pour les virements de FCFA lors des ventes, nous utilisons également ces deux réseaux Mobile Money.</div>
       </div>
       <div class="faq-item" data-cat="paiement">
         <button class="faq-q">Y a-t-il des frais supplémentaires ? <span>+</span></button>
-        <div class="faq-a">Pour les achats et ventes, notre rémunération est incluse dans le taux de change (630 à l'achat, 575 à la vente). Il n'y a pas de frais cachés supplémentaires. Pour les échanges crypto-to-crypto, des frais fixes de 2% sont appliqués sur le montant échangé, clairement affichés avant confirmation.</div>
+        <div class="faq-a">Pour les achats et ventes, notre rémunération est incluse dans le taux de change affiché sur le site. Il n'y a pas de frais cachés supplémentaires. Pour les échanges crypto-to-crypto, des frais fixes de 2% sont appliqués sur le montant échangé, clairement affichés avant confirmation.</div>
       </div>
       <div class="faq-item" data-cat="paiement">
         <button class="faq-q">Ma transaction a été validée mais je n'ai pas reçu ma crypto ? <span>+</span></button>
@@ -201,6 +209,15 @@
 <script>
 document.getElementById('nav-placeholder').innerHTML = buildNavHTML('contact');
 document.getElementById('footer-placeholder').innerHTML = buildFooterHTML();
+if (window.initNavDrawer) window.initNavDrawer();
+window.setTimeout(function() {
+  if (window.initNavDrawer) window.initNavDrawer();
+}, 0);
+
+document.getElementById('faq-scroll-link').addEventListener('click', function(e) {
+  e.preventDefault();
+  document.getElementById('faq-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 
 // FAQ accordion
 document.querySelectorAll('.faq-q').forEach(btn => {
